@@ -1,0 +1,76 @@
+# ---- Gradle / Kotlin ----
+.gradle/
+.kotlin/
+**/build/
+!src/**/build/
+*.hprof
+.gradletasknamecache
+
+# ---- Local machine config / secrets ----
+local.properties
+*.keystore
+*.jks
+!debug.keystore
+keystore.properties
+secrets.properties
+.env
+.env.*
+
+# Firebase per-tenant config files are provisioned per brand, never committed
+google-services.json
+**/google-services.json
+GoogleService-Info.plist
+**/GoogleService-Info.plist
+
+# ---- IDEs ----
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.fleet/
+out/
+
+# ---- Android ----
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.ap_
+*.dex
+lint/intermediates/
+lint/generated/
+lint/outputs/
+lint/tmp/
+
+# ---- iOS / Xcode ----
+xcuserdata/
+DerivedData/
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcodeproj/project.xcworkspace/
+!*.xcworkspace/contents.xcworkspacedata
+**/xcshareddata/WorkspaceSettings.xcsettings
+*.xcuserstate
+*.moved-aside
+*.dSYM.zip
+*.dSYM
+Pods/
+Carthage/Build/
+.build/
+iosApp/Frameworks/
+
+# ---- Desktop packaging ----
+*.dmg
+*.msi
+*.deb
+
+# ---- OS / misc ----
+.DS_Store
+Thumbs.db
+*.log
+*.swp
+*~
+node_modules/
