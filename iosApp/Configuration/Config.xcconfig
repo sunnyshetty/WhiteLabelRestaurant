@@ -1,0 +1,9 @@
+TEAM_ID=
+
+PRODUCT_NAME=WhiteLabelRestaurant
+// Tenant identity: the shared engine reads this at runtime via getApplicationId().
+// Per-brand iOS builds override it (e.g. one xcconfig/scheme per brand).
+PRODUCT_BUNDLE_IDENTIFIER=com.skyhightechnology.restaurantengine$(TEAM_ID)
+
+CURRENT_PROJECT_VERSION=1
+MARKETING_VERSION=1.0
