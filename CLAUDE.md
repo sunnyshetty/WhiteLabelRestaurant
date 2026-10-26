@@ -1,0 +1,41 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project
+
+WhiteLabelRestaurant is a white-label Kotlin Multiplatform restaurant engine (Android, iOS, Desktop/JVM) with a shared Compose Multiplatform UI. One codebase serves many restaurant brands ("tenants"); a brand is selected by the app's platform identifier at runtime, not by forking code.
+
+**Current state:** scaffold only. The Clean Architecture packages exist but are empty (`.gitkeep`); the only real code is tenant resolution, Koin bootstrapping, a placeholder theme, and a placeholder `App()` that displays the tenant ID. GitLive Firebase (Auth + Firestore) is a dependency but is not initialized or used yet, and no `google-services.json` / `GoogleService-Info.plist` exists (both are gitignored by design — provisioned per brand).
+
+## Commands
+
+- Android (per brand): `./gradlew :androidApp:assembleBurgerjointDebug`, `./gradlew :androidApp:assembleCafelocalDebug`
+- Desktop: `./gradlew :desktopApp:run` — choose a tenant with `-Dtenant.applicationId=com.burgerjoint.app` (JVM arg)
+- iOS: open `iosApp/` in Xcode. The build phase runs `./gradlew :shared:embedAndSignAppleFrameworkForXcode`. Linking requires the Xcode license to be accepted (`sudo xcodebuild -license`) and, once Firebase is used, the Firebase iOS SDK added via SPM.
+- Tests: `./gradlew :shared:jvmTest` (fastest), `:shared:testAndroidHostTest`, `:shared:iosSimulatorArm64Test`. Single class: append `--tests "com.skyhightechnology.restaurantengine.SomeTest"`.
+
+## Architecture
+
+Modules (`settings.gradle.kts`): `shared` (all engine code + UI, built as static iOS framework `Shared`), and thin entry points `androidApp`, `desktopApp`, `iosApp` (SwiftUI shell, not a Gradle module). Root package everywhere: `com.skyhightechnology.restaurantengine`. Versions live in `gradle/libs.versions.toml`; Java/JVM target is 17 in every module.
+
+### Tenant resolution
+
+- `expect fun getApplicationId()` in `shared/src/commonMain/.../Platform.kt` is the single source of tenant identity.
+  - Android: `packageName`, via `AndroidPlatform.init(context)` which **must** run in `WhiteLabelApplication.onCreate()` before anything else.
+  - iOS: `NSBundle.mainBundle.bundleIdentifier` (set in `iosApp/Configuration/Config.xcconfig`).
+  - JVM: `-Dtenant.applicationId`, defaulting to `com.skyhightechnology.restaurantengine`.
+- Koin exposes it as `single(TenantId)` in `di/Koin.kt`. Consume it via injection, never by calling `getApplicationId()` directly from feature code.
+- Android brands are `productFlavors` in the `brand` dimension (`androidApp/build.gradle.kts`): each sets `applicationId` and `resValue("string", "app_name", …)`. There is deliberately no static `app_name` in `res/values` — adding one causes a duplicate-resource error. New brand = new flavor block.
+
+### Layers (`shared/src/commonMain/kotlin/com/skyhightechnology/restaurantengine/`)
+
+`domain/{model,repository,usecase}` — pure Kotlin, no Compose/Firebase/serialization/Koin imports. `data/{model,repository}` — `@Serializable` DTOs and repository implementations (Firebase lives here only). `presentation/{component,theme,<feature>}` — composables and `ViewModel`s exposing `StateFlow<UiState>`; never imports `data`. `di/` — the only place implementations are bound to interfaces. Banned imports per layer and the review workflow: `.skills/architecture-linter.md`.
+
+`koin-core` is an `api` dependency of `shared` because `initKoin()` is called from each platform entry point (Android `WhiteLabelApplication`, desktop `main()`, iOS `MainViewController` configure block).
+
+### Testing
+
+Tests go in `shared/src/commonTest` mirroring the production package, using `kotlin.test` + `runTest` + Turbine, with hand-written fakes (no mocking libraries — they don't run on Kotlin/Native). Details: `.skills/unit-test-generator.md`.
+
+Both `.skills/` files hold the team's established rules (`architecture-linter.md` adds project-specific bans and composition-root exemptions on top).

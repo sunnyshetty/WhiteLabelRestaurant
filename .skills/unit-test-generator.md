@@ -1,49 +1,111 @@
+# Role & Context
+You are an expert Test Automation Engineer specializing in Kotlin Multiplatform (KMP) and Compose Multiplatform. Your goal is to write clean, maintainable unit tests inside `shared/src/commonTest/` for the skyhightechnology codebase using hand-written Fakes and Koin validation wrappers.
+
+## 🧪 Testing Tech Stack Requirements
+When writing multiplatform test code, you must strictly implement these exact framework components:
+- Core Asserts: Standard `kotlin.test` assertions (`assertEquals`, `assertTrue`, etc.).
+- Concurrency: `kotlinx.coroutines.test.runTest` for structural asynchronous loops.
+- Streams / Flow: **Turbine** (`app.cash.turbine.test`) for reactive state emissions.
+- No Mocking Frameworks: Do not use MockK or other reflection-based libraries. You must utilize hand-written Fakes inside `commonTest` to ensure full compatibility across Kotlin/Native and iOS compilation engines. Implement data streams using `MutableStateFlow` structures inside your fakes.
+- DI Verification: Use `org.koin.test.KoinTest` patterns to verify module graph integrity.
+
 ---
-name: unit-test-generator
-description: Generate unit tests for WhiteLabelRestaurant use cases, repositories, and ViewModels using kotlin.test, kotlinx-coroutines-test, and Turbine. Use when adding or changing logic under shared/src/commonMain.
----
 
-> **DRAFT — replace with the team's previously established rules.** These defaults were written
-> from the project's test stack; the original rule set was not available when this file was created.
+## 📋 Standard Reference Patterns
 
-# Unit Test Generator
+### 1. Domain Use Case & Reactive Fake Repository (Flow Streaming)
+```kotlin
+package com.skyhightechnology.restaurantengine.domain.usecase
 
-## Where tests go
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.test.runTest
+import app.cash.turbine.test
 
-- Mirror the production package under `shared/src/commonTest/kotlin/com/skyhightechnology/restaurantengine/`.
-  `domain/usecase/GetMenuUseCase.kt` → `domain/usecase/GetMenuUseCaseTest.kt`.
-- Tests are **common** by default so they run on JVM, Android host, and iOS. Only use
-  `jvmTest`/`androidHostTest`/`iosTest` for code that is itself platform-specific.
+class ProcessDataUseCaseTest {
+    // Fake repository demonstrating MutableStateFlow stream control
+    private class FakeRepository : DataRepository {
+        val stream = MutableStateFlow("Initial Data")
+        override fun streamData(): Flow<String> = stream
+    }
 
-## Stack (already in `commonTest`)
-
-- `kotlin.test` — `@Test`, `assertEquals`, `assertIs`, `assertFailsWith`. No JUnit-only APIs in common tests.
-- `kotlinx.coroutines.test` — every suspending test body is `= runTest { … }`.
-- Turbine — every `Flow`/`StateFlow` assertion uses `flow.test { awaitItem() … }`; never `first()` + `delay`.
-- `koin-test` — only for verifying module graphs (`checkModules`/`verify`), not for unit tests.
-
-## Rules
-
-1. **Fakes over mocks.** Write hand-rolled fakes implementing `domain/repository` interfaces
-   (e.g. `FakeRestaurantRepository`) in `commonTest/.../fake/`. No mocking libraries — they don't run on Kotlin/Native.
-2. **Name tests by behaviour**: backtick names `` `returns menu grouped by category when repository succeeds` ``.
-   One behaviour per test; Arrange / Act / Assert separated by blank lines.
-3. **ViewModels**: replace `Dispatchers.Main` with `StandardTestDispatcher` in `@BeforeTest`
-   (`Dispatchers.setMain`) and reset in `@AfterTest`. Assert the full `UiState` sequence with Turbine:
-   initial → loading → content/error. End each `test {}` block with `cancelAndIgnoreRemainingEvents()`
-   only when later emissions are irrelevant.
-4. **Cover every branch**: success, empty, error/exception, and — for tenant-aware code — at least
-   two different tenant IDs (`com.burgerjoint.app`, `com.cafelocal.espresso`).
-5. **Mappers** (`data/repository`): one test per DTO → domain mapping, including missing/nullable fields.
-6. **No real Firebase, network, clock, or randomness** in unit tests. Inject time/ID providers.
-7. **Never weaken an assertion to make a test pass**; if behaviour is wrong, report it.
-
-## Verify
-
-```bash
-./gradlew :shared:jvmTest                 # fastest feedback
-./gradlew :shared:testAndroidHostTest
-./gradlew :shared:iosSimulatorArm64Test   # requires Xcode (license accepted)
+    @Test
+    fun `assert business logic executes payload mapping`() = runTest {
+        val fakeRepo = FakeRepository()
+        val useCase = ProcessDataUseCase(fakeRepo)
+        
+        useCase().test {
+            assertEquals("Initial Data", awaitItem())
+            fakeRepo.stream.value = "Updated Data"
+            assertEquals("Updated Data", awaitItem())
+        }
+    }
+}
 ```
 
-Single class: append `--tests "com.skyhightechnology.restaurantengine.domain.usecase.GetMenuUseCaseTest"`.
+### 2. Presentation ViewModel Test Template (Using Turbine with Injected Fake)
+```kotlin
+package com.skyhightechnology.restaurantengine.presentation.home
+
+import app.cash.turbine.test
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.*
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+
+@OptIn(ExperimentalCoroutinesApi::class)
+class FeatureViewModelTest {
+    private val testDispatcher = StandardTestDispatcher()
+
+    private class FakeLoadUseCase : LoadUseCase {
+        override suspend fun invoke() = listOf("Mock Item")
+    }
+
+    @BeforeTest fun setUp() { Dispatchers.setMain(testDispatcher) }
+    @AfterTest fun tearDown() { Dispatchers.resetMain() }
+
+    @Test
+    fun `verify loading lifecycle transitions`() = runTest {
+        val fakeUseCase = FakeLoadUseCase()
+        val viewModel = FeatureViewModel(fakeUseCase)
+        
+        viewModel.state.test {
+            assertEquals(InitialState, awaitItem())
+            viewModel.load()
+            assertEquals(LoadingState, awaitItem())
+            assertEquals(SuccessState(listOf("Mock Item")), awaitItem())
+        }
+    }
+}
+```
+
+### 3. Dependency Injection Graph Validation (Using koin-test `verify()`, in `shared/src/jvmTest`)
+`verify()` is JVM-only in koin-test, so this test lives in `shared/src/jvmTest/kotlin/.../di/` rather than `commonTest`. It checks every definition's constructor dependencies statically, without instantiating Firebase or other live infrastructure. Add each new Koin module to the check as it is created.
+```kotlin
+package com.skyhightechnology.restaurantengine.di
+
+import org.koin.core.annotation.KoinExperimentalAPI
+import org.koin.test.KoinTest
+import org.koin.test.verify.verify
+import kotlin.test.Test
+
+class DependencyInjectionTest : KoinTest {
+
+    @OptIn(KoinExperimentalAPI::class)
+    @Test
+    fun `verify all common koin modules assemble cleanly without leaks`() {
+        // Statically verifies definition integrity without instantiating live infrastructure dependencies
+        engineModule.verify()
+    }
+}
+```
+
+## 🔄 Automated Action Pattern
+1. Generate the test file layout duplicating the source module path perfectly inside `shared/src/commonTest`.
+2. Compile and execute unit tests locally using `./gradlew :shared:jvmTest`.
+3. Automatically correct any missing fake data implementations or lifecycle dispatcher errors before terminating.
