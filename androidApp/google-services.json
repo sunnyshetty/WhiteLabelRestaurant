@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "671728239228",
+    "project_id": "skyhigh-restaurant-engine",
+    "storage_bucket": "skyhigh-restaurant-engine.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:671728239228:android:a370c9089c240453a4fff9",
+        "android_client_info": {
+          "package_name": "com.burgerjoint.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDo9C7lebH0lcZuLULnUFWVyqUk7mH8UXs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

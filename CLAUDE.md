@@ -8,7 +8,7 @@ WhiteLabelRestaurant is a white-label Kotlin Multiplatform restaurant engine (An
 
 **Current state:** early. Real code is tenant resolution, Koin bootstrapping, a placeholder theme and `App()`, plus the domain models / `RestaurantRepository` contract and its GitLive Firestore implementation (`data/repository/FirestoreRestaurantRepository`). Presentation and use cases are still empty.
 
-**Brands per platform:** Android ships only Burger Joint (`com.burgerjoint.app`); iOS ships only Cafe Local (`com.cafelocal.espresso`). Both use the Firebase project `skyhigh-restaurant-engine`. Firebase config files are gitignored by design: Android reads `androidApp/google-services.json` (module root — the Google Services plugin does not search `src/main`); iOS reads `iosApp/<brand>/GoogleService-Info.plist`, copied into the app by a build phase that checks its `BUNDLE_ID`.
+**Brands per platform:** Android ships only Burger Joint (`com.burgerjoint.app`); iOS ships only Cafe Local (`com.cafelocal.espresso`). Both use the Firebase project `skyhigh-restaurant-engine`. Each brand's Firebase config file is committed so the apps run straight from a clone (other copies stay gitignored): Android reads `androidApp/google-services.json` (module root — the Google Services plugin does not search `src/main`); iOS reads `iosApp/<brand>/GoogleService-Info.plist`, copied into the app by a build phase that checks its `BUNDLE_ID`.
 
 **Brand artwork:** the source logo for each brand is `branding/<brand>/logo-mark.svg` (a disc in the secondary colour with a glyph in the primary colour). The launcher icon and launch screen are built from it, because both appear before the Firestore config loads.
 - **Android:** each flavor's `src/<flavor>/res` supplies:

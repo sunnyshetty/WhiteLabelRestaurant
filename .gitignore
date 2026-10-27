@@ -16,11 +16,14 @@ secrets.properties
 .env
 .env.*
 
-# Firebase per-tenant config files are provisioned per brand, never committed
+# Firebase config: only each brand's canonical file is committed (client config, not a secret;
+# access is governed by Firestore rules and API-key restrictions). Stray copies stay ignored.
 google-services.json
 **/google-services.json
 GoogleService-Info.plist
 **/GoogleService-Info.plist
+!androidApp/google-services.json
+!iosApp/cafelocal/GoogleService-Info.plist
 
 # ---- IDEs ----
 .idea/
