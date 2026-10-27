@@ -29,7 +29,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -56,6 +58,7 @@ import org.koin.compose.viewmodel.koinViewModel
  * Branch home (Figma "3 · Restaurant"): hero, brand name, the two primary actions and a details card.
  * [onBack] returns to the location list.
  */
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun RestaurantScreen(
     brandName: String,
@@ -66,6 +69,11 @@ fun RestaurantScreen(
     viewModel: RestaurantViewModel = koinViewModel(),
 ) {
     LaunchedEffect(branchId) { viewModel.onAction(RestaurantAction.SelectBranch(branchId)) }
+    // This is the branch flow's start destination, so NavHost has nothing to pop: without this,
+    // system back would close the app instead of returning to the location list like the app bar arrow.
+    // Deprecated for NavigationEventHandler, which needs navigationevent 1.1 (we resolve 1.0.1 with navigation 2.9.2).
+    @Suppress("DEPRECATION")
+    BackHandler(onBack = onBack)
     val state by viewModel.state.collectAsStateWithLifecycle()
     RestaurantContent(brandName, state, onBack, onBookTable, onViewMenu)
 }
