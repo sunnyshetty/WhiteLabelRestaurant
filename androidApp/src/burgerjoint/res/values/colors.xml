@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Burger Joint brand colours (branding/burgerjoint). Used by the launcher icon and launch screen,
+         which render before the Firestore config is available. -->
+    <color name="brand_primary">#D9531E</color>
+    <color name="brand_secondary">#2B2B2B</color>
+</resources>

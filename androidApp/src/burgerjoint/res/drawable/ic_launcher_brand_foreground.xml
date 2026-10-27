@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Burger glyph from branding/burgerjoint/logo-mark.svg (192 units), scaled so the mark's disc
+     matches the 72dp visible area of the 108dp adaptive-icon canvas. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:scaleX="0.375"
+        android:scaleY="0.375"
+        android:translateX="18"
+        android:translateY="18">
+        <path
+            android:fillColor="@color/brand_primary"
+            android:pathData="M46,92 C46,62 70,48 96,48 C122,48 146,62 146,92 Z" />
+        <group android:pivotX="78" android:pivotY="68" android:rotation="-20">
+            <path
+                android:fillColor="@color/brand_secondary"
+                android:pathData="M74,68 a4,2.2 0 1,0 8,0 a4,2.2 0 1,0 -8,0 Z" />
+        </group>
+        <path
+            android:fillColor="@color/brand_secondary"
+            android:pathData="M94,60 a4,2.2 0 1,0 8,0 a4,2.2 0 1,0 -8,0 Z" />
+        <group android:pivotX="116" android:pivotY="70" android:rotation="20">
+            <path
+                android:fillColor="@color/brand_secondary"
+                android:pathData="M112,70 a4,2.2 0 1,0 8,0 a4,2.2 0 1,0 -8,0 Z" />
+        </group>
+        <path
+            android:fillColor="@color/brand_secondary"
+            android:pathData="M92,78 a4,2.2 0 1,0 8,0 a4,2.2 0 1,0 -8,0 Z" />
+        <path
+            android:fillColor="@color/brand_primary"
+            android:pathData="M48,100 H144 A8,8 0 0,1 144,116 H48 A8,8 0 0,1 48,100 Z" />
+        <path
+            android:fillColor="@color/brand_primary"
+            android:pathData="M46,124 H146 V130 C146,139 139,146 130,146 H62 C53,146 46,139 46,130 Z" />
+    </group>
+</vector>

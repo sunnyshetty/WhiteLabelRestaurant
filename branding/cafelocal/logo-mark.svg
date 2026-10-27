@@ -1,0 +1,12 @@
+<svg width="192" height="192" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+  <!-- Cafe Local logo mark. Disc = secondary #E6D5B8, glyph = primary #1E3F20. -->
+  <circle id="disc" cx="96" cy="96" r="96" fill="#E6D5B8"/>
+  <g id="glyph" transform="translate(-4 -6)">
+    <path d="M78 72 C72 64 84 58 78 48" stroke="#1E3F20" stroke-width="6" stroke-linecap="round" fill="none"/>
+    <path d="M96 72 C90 64 102 58 96 48" stroke="#1E3F20" stroke-width="6" stroke-linecap="round" fill="none"/>
+    <path d="M114 72 C108 64 120 58 114 48" stroke="#1E3F20" stroke-width="6" stroke-linecap="round" fill="none"/>
+    <path d="M54 84 H138 V112 C138 132 122 146 102 146 H90 C70 146 54 132 54 112 Z" fill="#1E3F20"/>
+    <path d="M138 94 H144 C152 94 158 100 158 108 C158 116 152 122 144 122 H136" stroke="#1E3F20" stroke-width="9" fill="none"/>
+    <rect x="44" y="152" width="104" height="8" rx="4" fill="#1E3F20"/>
+  </g>
+</svg>

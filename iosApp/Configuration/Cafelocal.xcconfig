@@ -5,3 +5,9 @@
 BRAND=cafelocal
 PRODUCT_BUNDLE_IDENTIFIER=com.cafelocal.espresso
 INFOPLIST_KEY_CFBundleDisplayName=Cafe Local
+
+// Brand artwork (Assets.xcassets, rendered from branding/cafelocal/logo-mark.svg).
+ASSETCATALOG_COMPILER_APPICON_NAME=AppIcon-Cafelocal
+// Read by UILaunchScreen in Info.plist.
+LAUNCH_SCREEN_BACKGROUND=LaunchBackground-Cafelocal
+LAUNCH_SCREEN_LOGO=LaunchLogo-Cafelocal

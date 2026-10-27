@@ -1,0 +1,13 @@
+<svg width="192" height="192" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+  <!-- Burger Joint logo mark. Disc = secondary #2B2B2B, glyph = primary #D9531E. -->
+  <circle id="disc" cx="96" cy="96" r="96" fill="#2B2B2B"/>
+  <g id="glyph">
+    <path d="M46 92 C46 62 70 48 96 48 C122 48 146 62 146 92 Z" fill="#D9531E"/>
+    <ellipse cx="78" cy="68" rx="4" ry="2.2" fill="#2B2B2B" transform="rotate(-20 78 68)"/>
+    <ellipse cx="98" cy="60" rx="4" ry="2.2" fill="#2B2B2B"/>
+    <ellipse cx="116" cy="70" rx="4" ry="2.2" fill="#2B2B2B" transform="rotate(20 116 70)"/>
+    <ellipse cx="96" cy="78" rx="4" ry="2.2" fill="#2B2B2B"/>
+    <rect x="40" y="100" width="112" height="16" rx="8" fill="#D9531E"/>
+    <path d="M46 124 H146 V130 C146 139 139 146 130 146 H62 C53 146 46 139 46 130 Z" fill="#D9531E"/>
+  </g>
+</svg>

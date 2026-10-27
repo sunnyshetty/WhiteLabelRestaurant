@@ -10,6 +10,14 @@ WhiteLabelRestaurant is a white-label Kotlin Multiplatform restaurant engine (An
 
 **Brands per platform:** Android ships only Burger Joint (`com.burgerjoint.app`); iOS ships only Cafe Local (`com.cafelocal.espresso`). Both use the Firebase project `skyhigh-restaurant-engine`. Firebase config files are gitignored by design: Android reads `androidApp/google-services.json` (module root — the Google Services plugin does not search `src/main`); iOS reads `iosApp/<brand>/GoogleService-Info.plist`, copied into the app by a build phase that checks its `BUNDLE_ID`.
 
+**Brand artwork:** the source logo for each brand is `branding/<brand>/logo-mark.svg` (a disc in the secondary colour with a glyph in the primary colour). The launcher icon and launch screen are built from it, because both appear before the Firestore config loads.
+- **Android:** each flavor's `src/<flavor>/res` supplies:
+  - `@color/brand_primary` and `@color/brand_secondary`
+  - `@drawable/splash_logo`, used by `Theme.WhiteLabel.Starting` (core-splashscreen)
+  - the adaptive `mipmap-anydpi-v26/ic_launcher*.xml` icons and the legacy `mipmap-*dpi` PNGs
+- **iOS:** the `<Brand>.xcconfig` sets `ASSETCATALOG_COMPILER_APPICON_NAME`, `LAUNCH_SCREEN_BACKGROUND` and `LAUNCH_SCREEN_LOGO`, which name `AppIcon-<Brand>`, `LaunchBackground-<Brand>` and `LaunchLogo-<Brand>` in `Assets.xcassets`. `Info.plist` reads the last two.
+- **PNGs** are rendered from the SVG; nothing reads them directly from Figma.
+
 ## Commands
 
 - Android: `./gradlew :androidApp:assembleBurgerjointDebug`

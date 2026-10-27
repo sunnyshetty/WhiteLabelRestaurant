@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.WhiteLabel" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <!-- Launch screen. Each brand flavor supplies @color/brand_primary and @drawable/splash_logo
+         (e.g. src/burgerjoint/res); a new flavor without them fails resource linking. -->
+    <style name="Theme.WhiteLabel.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/brand_primary</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_logo</item>
+        <item name="postSplashScreenTheme">@style/Theme.WhiteLabel</item>
+    </style>
+</resources>
