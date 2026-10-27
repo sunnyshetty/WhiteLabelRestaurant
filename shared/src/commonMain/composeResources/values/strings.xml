@@ -21,6 +21,10 @@
     <string name="restaurant_view_menu">View menu</string>
     <string name="restaurant_address">Address</string>
     <string name="restaurant_phone">Phone</string>
+    <string name="restaurant_opening_hours">Opening hours</string>
+    <string name="restaurant_tables_today">Tables today</string>
+    <string name="restaurant_tables_available">Good availability</string>
+    <string name="restaurant_tables_full">Fully booked</string>
 
     <!-- Onboarding -->
     <string name="onboarding_headline">Where would you like to eat today?</string>
@@ -32,25 +36,27 @@
     <!-- %1$s = whole units, %2$s = two-digit cents. Translators set symbol and separator. -->
     <string name="menu_price">€%1$s.%2$s</string>
 
-    <!-- Reservation steps -->
-    <string name="reservation_step_party_size">1. Party size</string>
-    <string name="reservation_step_date">2. Date</string>
-    <string name="reservation_step_time">3. Time</string>
-    <string name="reservation_step_name">4. Your name</string>
-    <plurals name="reservation_party_size">
-        <item quantity="one">%1$d guest</item>
-        <item quantity="other">%1$d guests</item>
-    </plurals>
+    <!-- Book a table -->
+    <string name="reservation_section_date">Date</string>
+    <string name="reservation_section_guests">Guests</string>
+    <string name="reservation_section_time">Available times</string>
+    <string name="reservation_section_details">Your details</string>
+    <!-- Date chip: %1$s = short weekday, %2$d = day of month, e.g. "Thu 29" -->
+    <string name="reservation_date_chip">%1$s %2$d</string>
+    <!-- Largest guest chip, e.g. "6+" -->
+    <string name="reservation_guests_or_more">%1$d+</string>
     <string name="reservation_pick_date_first">Pick a date to see times.</string>
-    <string name="reservation_name_label">Name for the booking</string>
-    <string name="reservation_confirm">Confirm Booking</string>
+    <string name="reservation_name_label">Name</string>
+    <string name="reservation_phone_label">Phone</string>
+    <string name="reservation_email_label">Email</string>
+    <string name="reservation_requests_label">Special requests (optional)</string>
+    <string name="reservation_confirm">Confirm reservation</string>
+    <string name="reservation_no_account">No account needed</string>
     <string name="reservation_success_title">Booking requested</string>
     <string name="reservation_success_body">Your table request has been sent to the branch.</string>
     <string name="reservation_book_another">Book another table</string>
 
-    <!-- Date rail labels -->
-    <string name="day_today">Today</string>
-    <string name="day_tomorrow">Tomorrow</string>
+    <!-- Short weekday names for the date chips -->
     <string name="weekday_short_monday">Mon</string>
     <string name="weekday_short_tuesday">Tue</string>
     <string name="weekday_short_wednesday">Wed</string>
@@ -62,6 +68,8 @@
     <!-- ReservationError: one string per case -->
     <string name="reservation_error_no_branch">Choose a branch first.</string>
     <string name="reservation_error_missing_name">Enter a name for the reservation.</string>
+    <string name="reservation_error_missing_phone">Enter a phone number so the branch can reach you.</string>
+    <string name="reservation_error_invalid_email">Enter a valid email address.</string>
     <string name="reservation_error_missing_party_size">Choose how many guests are coming.</string>
     <string name="reservation_error_missing_time">Choose a time for the reservation.</string>
     <string name="reservation_error_offline">You're offline, so your booking wasn't sent.</string>

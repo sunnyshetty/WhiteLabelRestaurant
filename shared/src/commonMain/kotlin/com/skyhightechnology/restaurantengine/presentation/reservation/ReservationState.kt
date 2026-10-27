@@ -10,6 +10,8 @@ data class ReservationState(
 sealed interface ReservationError {
     data object NoBranch : ReservationError
     data object MissingName : ReservationError
+    data object MissingPhone : ReservationError
+    data object InvalidEmail : ReservationError
     data object MissingPartySize : ReservationError
     data object MissingTime : ReservationError
     data object Offline : ReservationError
@@ -21,6 +23,9 @@ sealed interface ReservationAction {
     data class Submit(
         val branchId: String?,
         val customerName: String,
+        val customerPhone: String,
+        val customerEmail: String,
+        val specialRequests: String,
         val partySize: Int,
         val reservationTime: String,
     ) : ReservationAction

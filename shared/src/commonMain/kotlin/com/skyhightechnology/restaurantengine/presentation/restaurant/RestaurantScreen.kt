@@ -43,7 +43,11 @@ import com.skyhightechnology.restaurantengine.resources.Res
 import com.skyhightechnology.restaurantengine.resources.action_back
 import com.skyhightechnology.restaurantengine.resources.restaurant_address
 import com.skyhightechnology.restaurantengine.resources.restaurant_book_table
+import com.skyhightechnology.restaurantengine.resources.restaurant_opening_hours
 import com.skyhightechnology.restaurantengine.resources.restaurant_phone
+import com.skyhightechnology.restaurantengine.resources.restaurant_tables_available
+import com.skyhightechnology.restaurantengine.resources.restaurant_tables_full
+import com.skyhightechnology.restaurantengine.resources.restaurant_tables_today
 import com.skyhightechnology.restaurantengine.resources.restaurant_view_menu
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -58,7 +62,7 @@ fun RestaurantScreen(
     brandName: String,
     branchId: String,
     onBack: () -> Unit,
-    onBookTable: () -> Unit,
+    onBookTable: (branchName: String) -> Unit,
     onViewMenu: (branchName: String) -> Unit,
     viewModel: RestaurantViewModel = koinViewModel(),
 ) {
@@ -88,7 +92,7 @@ fun RestaurantScreen(
             branch != null -> RestaurantContent(
                 brandName = brandName,
                 branch = branch,
-                onBookTable = onBookTable,
+                onBookTable = { onBookTable(branch.name) },
                 onViewMenu = { onViewMenu(branch.name) },
                 modifier = Modifier.padding(padding),
             )
@@ -152,6 +156,16 @@ private fun InfoCard(branch: RestaurantBranch) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             if (branch.address.isNotBlank()) {
                 InfoRow(AppIcons.LocationOn, stringResource(Res.string.restaurant_address), branch.address)
+            }
+            if (branch.openingHours.isNotBlank()) {
+                InfoRow(AppIcons.Schedule, stringResource(Res.string.restaurant_opening_hours), branch.openingHours)
+            }
+            branch.hasTablesToday?.let { hasTables ->
+                InfoRow(
+                    AppIcons.Groups,
+                    stringResource(Res.string.restaurant_tables_today),
+                    stringResource(if (hasTables) Res.string.restaurant_tables_available else Res.string.restaurant_tables_full),
+                )
             }
             if (branch.phoneNumber.isNotBlank()) {
                 InfoRow(AppIcons.Phone, stringResource(Res.string.restaurant_phone), branch.phoneNumber)

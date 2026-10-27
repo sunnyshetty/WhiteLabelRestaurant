@@ -5,6 +5,10 @@ data class Reservation(
     val id: String,
     val branchId: String,
     val customerName: String,
+    val customerPhone: String,
+    val customerEmail: String,
+    /** Free text from the guest; empty when none. */
+    val specialRequests: String,
     val partySize: Int,
     val reservationTime: String,
     val status: String,

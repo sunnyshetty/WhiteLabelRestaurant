@@ -1,6 +1,5 @@
 package com.skyhightechnology.restaurantengine.presentation.reservation
 
-import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -13,19 +12,18 @@ class BookingSlotsTest {
     private val today = LocalDate(2026, 10, 30) // a Friday
 
     @Test
-    fun `offers a two week window starting today`() {
+    fun `offers a one week window starting today`() {
         val dates = BookingSlots.dates(today)
 
-        assertEquals(14, dates.size)
+        assertEquals(7, dates.size)
         assertEquals(today, dates.first())
-        assertEquals(LocalDate(2026, 11, 12), dates.last())
+        assertEquals(LocalDate(2026, 11, 5), dates.last())
     }
 
     @Test
-    fun `labels today and tomorrow then weekdays`() {
-        assertEquals(DayLabel.Today, BookingSlots.dayLabel(today, today))
-        assertEquals(DayLabel.Tomorrow, BookingSlots.dayLabel(LocalDate(2026, 10, 31), today))
-        assertEquals(DayLabel.Weekday(DayOfWeek.SUNDAY), BookingSlots.dayLabel(LocalDate(2026, 11, 1), today))
+    fun `offers one to six guests with six as the open ended choice`() {
+        assertEquals(listOf(1, 2, 3, 4, 5, 6), BookingSlots.partySizes)
+        assertEquals(6, BookingSlots.largestPartySize)
     }
 
     @Test

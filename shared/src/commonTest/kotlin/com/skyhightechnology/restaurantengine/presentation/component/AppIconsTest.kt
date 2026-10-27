@@ -10,6 +10,9 @@ class AppIconsTest {
     fun `icon paths parse into 24dp vectors`() {
         listOf(
             AppIcons.RestaurantMenu,
+            AppIcons.Schedule,
+            AppIcons.Groups,
+            AppIcons.Check,
             AppIcons.ArrowBack,
             AppIcons.Phone,
             AppIcons.LocationOn,

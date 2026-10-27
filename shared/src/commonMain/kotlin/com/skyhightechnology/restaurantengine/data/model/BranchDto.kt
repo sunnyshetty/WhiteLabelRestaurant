@@ -10,6 +10,9 @@ data class BranchDto(
     @SerialName("branchName") val name: String = "",
     val address: String = "",
     val phoneNumber: String = "",
+    val openingHours: String = "",
+    /** Table availability today; missing means unknown. */
+    val isAvailable: Boolean? = null,
 )
 
 fun BranchDto.toDomain(id: String) = RestaurantBranch(
@@ -17,4 +20,6 @@ fun BranchDto.toDomain(id: String) = RestaurantBranch(
     name = name,
     address = address,
     phoneNumber = phoneNumber,
+    openingHours = openingHours,
+    hasTablesToday = isAvailable,
 )

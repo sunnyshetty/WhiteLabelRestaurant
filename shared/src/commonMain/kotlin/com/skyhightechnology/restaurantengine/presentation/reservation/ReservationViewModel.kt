@@ -42,6 +42,9 @@ class ReservationViewModel(
             id = "", // Firestore assigns the document id.
             branchId = entry.branchId.orEmpty(),
             customerName = entry.customerName.trim(),
+            customerPhone = entry.customerPhone.trim(),
+            customerEmail = entry.customerEmail.trim(),
+            specialRequests = entry.specialRequests.trim(),
             partySize = entry.partySize,
             reservationTime = entry.reservationTime.trim(),
             status = STATUS_PENDING,
@@ -61,6 +64,8 @@ class ReservationViewModel(
     private fun validate(entry: ReservationAction.Submit): ReservationError? = when {
         entry.branchId.isNullOrBlank() -> ReservationError.NoBranch
         entry.customerName.isBlank() -> ReservationError.MissingName
+        entry.customerPhone.isBlank() -> ReservationError.MissingPhone
+        !EMAIL.matches(entry.customerEmail.trim()) -> ReservationError.InvalidEmail
         entry.partySize < 1 -> ReservationError.MissingPartySize
         entry.reservationTime.isBlank() -> ReservationError.MissingTime
         else -> null
@@ -74,5 +79,8 @@ class ReservationViewModel(
 
     private companion object {
         const val STATUS_PENDING = "PENDING"
+
+        /** Shape check only (something@domain.tld); the branch confirms by contacting the guest. */
+        val EMAIL = Regex("""[^@\s]+@[^@\s]+\.[^@\s]+""")
     }
 }

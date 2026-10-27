@@ -14,6 +14,8 @@ class ReservationStringsTest {
         val errors = listOf(
             ReservationError.NoBranch,
             ReservationError.MissingName,
+            ReservationError.MissingPhone,
+            ReservationError.InvalidEmail,
             ReservationError.MissingPartySize,
             ReservationError.MissingTime,
             ReservationError.Offline,
@@ -25,9 +27,9 @@ class ReservationStringsTest {
     }
 
     @Test
-    fun `every day label has its own string`() = runTest {
-        val labels = listOf(DayLabel.Today, DayLabel.Tomorrow) + DayOfWeek.entries.map(DayLabel::Weekday)
-        assertEquals(labels.size, labels.map { it.labelRes }.toSet().size)
-        labels.forEach { assertTrue(getString(it.labelRes).isNotBlank(), it.toString()) }
+    fun `every weekday has its own short label`() = runTest {
+        val days = DayOfWeek.entries
+        assertEquals(days.size, days.map { it.shortLabelRes }.toSet().size)
+        days.forEach { assertTrue(getString(it.shortLabelRes).isNotBlank(), it.toString()) }
     }
 }

@@ -2,8 +2,12 @@ package com.skyhightechnology.restaurantengine.presentation
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -76,8 +80,9 @@ private data object RestaurantRoute
 @Serializable
 private data class MenuRoute(val branchName: String)
 
+/** [branchName] is the app bar subtitle, as for [MenuRoute]. */
 @Serializable
-private data object ReservationRoute
+private data class ReservationRoute(val branchName: String)
 
 /** Restaurant home, with Menu and Book a table pushed on top; leaving the home returns to the location list. */
 @Composable
@@ -90,7 +95,7 @@ private fun BranchFlow(brandName: String, branchId: String, onChangeBranch: () -
                 brandName = brandName,
                 branchId = branchId,
                 onBack = onChangeBranch,
-                onBookTable = { navController.navigate(ReservationRoute) },
+                onBookTable = { branchName -> navController.navigate(ReservationRoute(branchName)) },
                 onViewMenu = { branchName -> navController.navigate(MenuRoute(branchName)) },
             )
         }
@@ -101,14 +106,17 @@ private fun BranchFlow(brandName: String, branchId: String, onChangeBranch: () -
                 onBack = { navController.navigateUp() },
             ) { MenuScreen(branchId = branchId) }
         }
-        composable<ReservationRoute> {
-            BackScaffold(Res.string.restaurant_book_table, onBack = { navController.navigateUp() }) {
-                ReservationScreen(branchId = branchId)
-            }
+        composable<ReservationRoute> { entry ->
+            BackScaffold(
+                title = Res.string.restaurant_book_table,
+                subtitle = entry.toRoute<ReservationRoute>().branchName,
+                onBack = { navController.navigateUp() },
+            ) { ReservationScreen(branchId = branchId) }
         }
     }
 }
 
+/** Small app bar with back arrow. Content draws behind the navigation bar and pads for it itself. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BackScaffold(
@@ -118,6 +126,7 @@ private fun BackScaffold(
     content: @Composable () -> Unit,
 ) {
     Scaffold(
+        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
         topBar = {
             TopAppBar(
                 title = {

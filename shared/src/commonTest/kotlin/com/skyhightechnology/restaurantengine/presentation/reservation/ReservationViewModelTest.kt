@@ -26,6 +26,9 @@ class ReservationViewModelTest {
     private val validEntry = ReservationAction.Submit(
         branchId = "downtown",
         customerName = "  Ada Lovelace ",
+        customerPhone = " +31 6 1234 5678 ",
+        customerEmail = " ada@example.com ",
+        specialRequests = " Window seat ",
         partySize = 4,
         reservationTime = "2026-10-30T19:30:00Z",
     )
@@ -41,20 +44,34 @@ class ReservationViewModelTest {
         val cases = mapOf(
             validEntry.copy(branchId = null) to ReservationError.NoBranch,
             validEntry.copy(customerName = " ") to ReservationError.MissingName,
+            validEntry.copy(customerPhone = " ") to ReservationError.MissingPhone,
+            validEntry.copy(customerEmail = "") to ReservationError.InvalidEmail,
+            validEntry.copy(customerEmail = "ada@example") to ReservationError.InvalidEmail,
+            validEntry.copy(customerEmail = "ada example.com") to ReservationError.InvalidEmail,
             validEntry.copy(partySize = 0) to ReservationError.MissingPartySize,
             validEntry.copy(reservationTime = "") to ReservationError.MissingTime,
         )
 
         for ((entry, error) in cases) {
             viewModel.onAction(entry)
-            assertEquals(ReservationState(error = error), viewModel.state.value)
+            assertEquals(ReservationState(error = error), viewModel.state.value, entry.toString())
         }
         testDispatcher.scheduler.advanceUntilIdle()
         assertTrue(repository.createdReservations.isEmpty())
     }
 
     @Test
-    fun `submits a pending reservation for the tenant`() = runTest {
+    fun `special requests are optional`() = runTest {
+        val viewModel = viewModel()
+        viewModel.onAction(validEntry.copy(specialRequests = ""))
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(ReservationState(isSuccess = true), viewModel.state.value)
+        assertEquals("", repository.createdReservations.single().second.specialRequests)
+    }
+
+    @Test
+    fun `submits a trimmed pending reservation for the tenant`() = runTest {
         val viewModel = viewModel()
 
         viewModel.state.test {
@@ -69,6 +86,9 @@ class ReservationViewModelTest {
                     id = "",
                     branchId = "downtown",
                     customerName = "Ada Lovelace",
+                    customerPhone = "+31 6 1234 5678",
+                    customerEmail = "ada@example.com",
+                    specialRequests = "Window seat",
                     partySize = 4,
                     reservationTime = "2026-10-30T19:30:00Z",
                     status = "PENDING",

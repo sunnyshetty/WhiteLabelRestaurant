@@ -38,6 +38,25 @@ class DtoMappersTest {
     }
 
     @Test
+    fun `branch dto maps opening hours and table availability`() {
+        val dto = Json.decodeFromString<BranchDto>(
+            """{"branchName":"Centrum","openingHours":"Monday - Sunday: 12:00 - 22:00","isAvailable":false}""",
+        )
+
+        val branch = dto.toDomain("b1")
+        assertEquals("Monday - Sunday: 12:00 - 22:00", branch.openingHours)
+        assertEquals(false, branch.hasTablesToday)
+    }
+
+    @Test
+    fun `branch without availability is unknown rather than fully booked`() {
+        val branch = Json.decodeFromString<BranchDto>("""{"branchName":"Centrum"}""").toDomain("b1")
+
+        assertEquals("", branch.openingHours)
+        assertEquals(null, branch.hasTablesToday)
+    }
+
+    @Test
     fun `menu item dto reads cents from the price field`() {
         val dto = Json.decodeFromString<MenuItemDto>("""{"name":"Burger","price":1650,"category":"Mains"}""")
 
@@ -68,6 +87,9 @@ class DtoMappersTest {
             id = "r1",
             branchId = "b1",
             customerName = "Ada",
+            customerPhone = "+31 6 1234 5678",
+            customerEmail = "ada@example.com",
+            specialRequests = "Window seat",
             partySize = 4,
             reservationTime = "2026-10-26T19:30:00Z",
             status = "PENDING",
