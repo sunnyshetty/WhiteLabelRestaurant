@@ -8,7 +8,13 @@ class AppIconsTest {
 
     @Test
     fun `icon paths parse into 24dp vectors`() {
-        listOf(AppIcons.RestaurantMenu, AppIcons.Event).forEach {
+        listOf(
+            AppIcons.RestaurantMenu,
+            AppIcons.ArrowBack,
+            AppIcons.Phone,
+            AppIcons.LocationOn,
+            AppIcons.ChevronForward,
+        ).forEach {
             assertEquals(24f, it.viewportWidth, it.name)
             assertEquals(1, it.root.size, it.name)
         }

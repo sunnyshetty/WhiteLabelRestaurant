@@ -13,12 +13,17 @@
     <string name="load_error_unknown">Something unexpected happened. Please try again.</string>
 
     <!-- App shell -->
+    <string name="action_back">Back</string>
     <string name="nav_menu">Menu</string>
-    <string name="nav_reserve">Reserve</string>
-    <string name="action_change_branch">Change branch</string>
+
+    <!-- Restaurant (branch home) -->
+    <string name="restaurant_book_table">Book a table</string>
+    <string name="restaurant_view_menu">View menu</string>
+    <string name="restaurant_address">Address</string>
+    <string name="restaurant_phone">Phone</string>
 
     <!-- Onboarding -->
-    <string name="onboarding_choose_branch">Choose your branch</string>
+    <string name="onboarding_headline">Where would you like to eat today?</string>
     <string name="onboarding_no_branches">No branches are open yet.</string>
 
     <!-- Menu -->

@@ -1,12 +1,13 @@
 package com.skyhightechnology.restaurantengine.data.model
 
 import com.skyhightechnology.restaurantengine.domain.model.RestaurantBranch
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /** Firestore document `restaurants/{restaurantId}/branches/{branchId}`. */
 @Serializable
 data class BranchDto(
-    val name: String = "",
+    @SerialName("branchName") val name: String = "",
     val address: String = "",
     val phoneNumber: String = "",
 )

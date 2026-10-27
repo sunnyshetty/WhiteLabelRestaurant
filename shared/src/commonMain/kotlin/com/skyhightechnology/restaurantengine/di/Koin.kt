@@ -6,6 +6,7 @@ import com.skyhightechnology.restaurantengine.getApplicationId
 import com.skyhightechnology.restaurantengine.presentation.menu.MenuViewModel
 import com.skyhightechnology.restaurantengine.presentation.onboarding.OnboardingViewModel
 import com.skyhightechnology.restaurantengine.presentation.reservation.ReservationViewModel
+import com.skyhightechnology.restaurantengine.presentation.restaurant.RestaurantViewModel
 import com.skyhightechnology.restaurantengine.presentation.theme.GlobalConfigViewModel
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.firestore.FirebaseFirestore
@@ -28,6 +29,7 @@ val engineModule = module {
     // ViewModels take the repository directly. The tenant ID is the restaurantId: each brand's data lives at restaurants/{applicationId}.
     viewModel { GlobalConfigViewModel(get(TenantId), get()) }
     viewModel { OnboardingViewModel(get(TenantId), get()) }
+    viewModel { RestaurantViewModel(get(TenantId), get()) }
     viewModel { MenuViewModel(get(TenantId), get()) }
     viewModel { ReservationViewModel(get(TenantId), get()) }
 }

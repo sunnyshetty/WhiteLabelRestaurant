@@ -31,6 +31,13 @@ class DtoMappersTest {
     }
 
     @Test
+    fun `branch dto reads the name from the branchName field`() {
+        val dto = Json.decodeFromString<BranchDto>("""{"branchName":"Centrum","address":"Damrak 12","phoneNumber":"555"}""")
+
+        assertEquals("Centrum", dto.name)
+    }
+
+    @Test
     fun `menu item dto keeps nullable fields`() {
         val dto = MenuItemDto(name = "Classic", priceInCents = 1299, category = "Burgers", isAvailable = true)
 
