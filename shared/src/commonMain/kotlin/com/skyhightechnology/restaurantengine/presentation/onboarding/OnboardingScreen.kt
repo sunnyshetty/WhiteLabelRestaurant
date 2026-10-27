@@ -56,7 +56,22 @@ fun OnboardingScreen(
     viewModel: OnboardingViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    OnboardingContent(
+        brandName = brandName,
+        state = state,
+        onBranchSelected = onBranchSelected,
+        onRetry = { viewModel.onAction(OnboardingAction.Retry) },
+    )
+}
 
+/** Stateless body of [OnboardingScreen], also used by the previews. */
+@Composable
+internal fun OnboardingContent(
+    brandName: String,
+    state: OnboardingState,
+    onBranchSelected: (branchId: String) -> Unit,
+    onRetry: () -> Unit,
+) {
     Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.primary)) {
         BrandHeader(brandName)
         Surface(
@@ -64,31 +79,34 @@ fun OnboardingScreen(
             color = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         ) {
-            val error = state.error
-            when {
-                state.isLoading -> LoadingView()
-                error != null -> ErrorBanner(
-                    message = stringResource(error.messageRes),
-                    actionLabel = stringResource(Res.string.action_retry),
-                    onAction = { viewModel.onAction(OnboardingAction.Retry) },
-                    modifier = Modifier.padding(16.dp),
-                )
-                state.branches.isEmpty() -> Text(
-                    stringResource(Res.string.onboarding_no_branches),
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(24.dp),
-                )
-                else -> LazyColumn(
-                    contentPadding = PaddingValues(
-                        start = 16.dp,
-                        end = 16.dp,
-                        top = 24.dp,
-                        bottom = 16.dp + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding(),
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    items(state.branches, key = { it.id }) { branch ->
-                        LocationCard(branch, onClick = { onBranchSelected(branch.id) })
+            // In a Box: Surface stretches its only child, which would blow the error banner up to fill the sheet.
+            Box(Modifier.fillMaxSize()) {
+                val error = state.error
+                when {
+                    state.isLoading -> LoadingView()
+                    error != null -> ErrorBanner(
+                        message = stringResource(error.messageRes),
+                        actionLabel = stringResource(Res.string.action_retry),
+                        onAction = onRetry,
+                        modifier = Modifier.padding(16.dp),
+                    )
+                    state.branches.isEmpty() -> Text(
+                        stringResource(Res.string.onboarding_no_branches),
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(24.dp),
+                    )
+                    else -> LazyColumn(
+                        contentPadding = PaddingValues(
+                            start = 16.dp,
+                            end = 16.dp,
+                            top = 24.dp,
+                            bottom = 16.dp + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding(),
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        items(state.branches, key = { it.id }) { branch ->
+                            LocationCard(branch, onClick = { onBranchSelected(branch.id) })
+                        }
                     }
                 }
             }

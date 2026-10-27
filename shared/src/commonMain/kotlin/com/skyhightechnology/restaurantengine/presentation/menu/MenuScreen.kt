@@ -56,7 +56,12 @@ import org.koin.compose.viewmodel.koinViewModel
 fun MenuScreen(branchId: String, viewModel: MenuViewModel = koinViewModel()) {
     LaunchedEffect(branchId) { viewModel.onAction(MenuAction.SelectBranch(branchId)) }
     val state by viewModel.state.collectAsStateWithLifecycle()
+    MenuContent(state)
+}
 
+/** Stateless body of [MenuScreen], also used by the previews. */
+@Composable
+internal fun MenuContent(state: MenuState) {
     val error = state.error
     when {
         state.isLoading -> LoadingView()

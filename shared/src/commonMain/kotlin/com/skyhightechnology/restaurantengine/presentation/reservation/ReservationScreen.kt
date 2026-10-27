@@ -64,27 +64,39 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import kotlinx.datetime.todayIn
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import kotlin.time.Clock
 
 /** Book a table (Figma "5 · Book a table"): date, guests, time and contact details, confirmed from a pinned bottom bar. */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ReservationScreen(branchId: String, viewModel: ReservationViewModel = koinViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val timeZone = remember { TimeZone.currentSystemDefault() }
+    val now = remember { Clock.System.now().toLocalDateTime(timeZone) }
+    ReservationContent(state, branchId, now, timeZone, viewModel::onAction)
+}
 
+/**
+ * Stateless body of [ReservationScreen] apart from the form fields, also used by the previews.
+ * [now] decides which dates are offered and which slots have passed.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun ReservationContent(
+    state: ReservationState,
+    branchId: String,
+    now: LocalDateTime,
+    timeZone: TimeZone,
+    onAction: (ReservationAction) -> Unit,
+) {
     if (state.isSuccess) {
-        BookingConfirmed(onBookAnother = { viewModel.onAction(ReservationAction.Reset) })
+        BookingConfirmed(onBookAnother = { onAction(ReservationAction.Reset) })
         return
     }
 
-    val timeZone = remember { TimeZone.currentSystemDefault() }
-    val now = remember { Clock.System.now().toLocalDateTime(timeZone) }
-    val today = remember { Clock.System.todayIn(timeZone) }
-    val dates = remember(today) { BookingSlots.dates(today) }
+    val dates = remember(now.date) { BookingSlots.dates(now.date) }
 
     var dateIso by rememberSaveable { mutableStateOf<String?>(null) }
     var partySize by rememberSaveable { mutableStateOf<Int?>(null) }
@@ -156,12 +168,12 @@ fun ReservationScreen(branchId: String, viewModel: ReservationViewModel = koinVi
 
         BottomBar(
             error = state.error,
-            onDismissError = { viewModel.onAction(ReservationAction.DismissError) },
+            onDismissError = { onAction(ReservationAction.DismissError) },
             isSubmitting = state.isSubmitting,
             enabled = isComplete,
             onConfirm = {
                 if (date != null && selectedTime != null) {
-                    viewModel.onAction(
+                    onAction(
                         ReservationAction.Submit(
                             branchId = branchId,
                             customerName = name,

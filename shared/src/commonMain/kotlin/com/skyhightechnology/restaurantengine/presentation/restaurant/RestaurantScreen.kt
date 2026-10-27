@@ -56,7 +56,6 @@ import org.koin.compose.viewmodel.koinViewModel
  * Branch home (Figma "3 · Restaurant"): hero, brand name, the two primary actions and a details card.
  * [onBack] returns to the location list.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RestaurantScreen(
     brandName: String,
@@ -68,6 +67,19 @@ fun RestaurantScreen(
 ) {
     LaunchedEffect(branchId) { viewModel.onAction(RestaurantAction.SelectBranch(branchId)) }
     val state by viewModel.state.collectAsStateWithLifecycle()
+    RestaurantContent(brandName, state, onBack, onBookTable, onViewMenu)
+}
+
+/** Stateless body of [RestaurantScreen], also used by the previews. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun RestaurantContent(
+    brandName: String,
+    state: RestaurantState,
+    onBack: () -> Unit,
+    onBookTable: (branchName: String) -> Unit,
+    onViewMenu: (branchName: String) -> Unit,
+) {
     val branch = state.branch
 
     Scaffold(
@@ -89,7 +101,7 @@ fun RestaurantScreen(
                 message = stringResource(error.messageRes),
                 modifier = Modifier.padding(padding).padding(16.dp),
             )
-            branch != null -> RestaurantContent(
+            branch != null -> BranchDetails(
                 brandName = brandName,
                 branch = branch,
                 onBookTable = { onBookTable(branch.name) },
@@ -101,7 +113,7 @@ fun RestaurantScreen(
 }
 
 @Composable
-private fun RestaurantContent(
+private fun BranchDetails(
     brandName: String,
     branch: RestaurantBranch,
     onBookTable: () -> Unit,

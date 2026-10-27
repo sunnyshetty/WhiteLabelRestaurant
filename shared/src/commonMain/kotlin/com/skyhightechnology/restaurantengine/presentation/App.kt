@@ -119,7 +119,7 @@ private fun BranchFlow(brandName: String, branchId: String, onChangeBranch: () -
 /** Small app bar with back arrow. Content draws behind the navigation bar and pads for it itself. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun BackScaffold(
+internal fun BackScaffold(
     title: StringResource,
     onBack: () -> Unit,
     subtitle: String? = null,
