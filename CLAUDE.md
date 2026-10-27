@@ -6,13 +6,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 WhiteLabelRestaurant is a white-label Kotlin Multiplatform restaurant engine (Android, iOS, Desktop/JVM) with a shared Compose Multiplatform UI. One codebase serves many restaurant brands ("tenants"); a brand is selected by the app's platform identifier at runtime, not by forking code.
 
-**Current state:** scaffold only. The Clean Architecture packages exist but are empty (`.gitkeep`); the only real code is tenant resolution, Koin bootstrapping, a placeholder theme, and a placeholder `App()` that displays the tenant ID. GitLive Firebase (Auth + Firestore) is a dependency but is not initialized or used yet, and no `google-services.json` / `GoogleService-Info.plist` exists (both are gitignored by design — provisioned per brand).
+**Current state:** early. Real code is tenant resolution, Koin bootstrapping, a placeholder theme and `App()`, plus the domain models / `RestaurantRepository` contract and its GitLive Firestore implementation (`data/repository/FirestoreRestaurantRepository`). Presentation and use cases are still empty.
+
+**Brands per platform:** Android ships only Burger Joint (`com.burgerjoint.app`); iOS ships only Cafe Local (`com.cafelocal.espresso`). Both use the Firebase project `skyhigh-restaurant-engine`. Firebase config files are gitignored by design: Android reads `androidApp/google-services.json` (module root — the Google Services plugin does not search `src/main`); iOS reads `iosApp/<brand>/GoogleService-Info.plist`, copied into the app by a build phase that checks its `BUNDLE_ID`.
 
 ## Commands
 
-- Android (per brand): `./gradlew :androidApp:assembleBurgerjointDebug`, `./gradlew :androidApp:assembleCafelocalDebug`
+- Android: `./gradlew :androidApp:assembleBurgerjointDebug`
 - Desktop: `./gradlew :desktopApp:run` — choose a tenant with `-Dtenant.applicationId=com.burgerjoint.app` (JVM arg)
-- iOS: open `iosApp/` in Xcode. The build phase runs `./gradlew :shared:embedAndSignAppleFrameworkForXcode`. Linking requires the Xcode license to be accepted (`sudo xcodebuild -license`) and, once Firebase is used, the Firebase iOS SDK added via SPM.
+- iOS: open `iosApp/` in Xcode and pick the `Cafelocal` scheme (configurations `Debug-Cafelocal` / `Release-Cafelocal`, from `iosApp/Configuration/Cafelocal.xcconfig`, which sets `PRODUCT_BUNDLE_IDENTIFIER` and `BRAND`). A new iOS brand = new `<Brand>.xcconfig` + configurations + scheme. The plain Debug/Release configurations have no brand and skip Firebase. The build phase runs `./gradlew :shared:embedAndSignAppleFrameworkForXcode`. Linking requires the Xcode license to be accepted (`sudo xcodebuild -license`) and, once Firebase is used, the Firebase iOS SDK added via SPM.
 - Tests: `./gradlew :shared:jvmTest` (fastest), `:shared:testAndroidHostTest`, `:shared:iosSimulatorArm64Test`. Single class: append `--tests "com.skyhightechnology.restaurantengine.SomeTest"`.
 
 ## Architecture

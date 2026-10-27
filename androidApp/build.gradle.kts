@@ -3,6 +3,9 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeCompiler)
+    // Reads androidApp/google-services.json (module root; src/main is not searched).
+    // One Firebase project holds every brand's app, so one file covers all flavors.
+    alias(libs.plugins.googleServices)
 }
 
 kotlin {
@@ -37,17 +40,13 @@ android {
 
     // White-label tenants. Each brand gets its own applicationId, which the shared engine
     // resolves at runtime via getApplicationId() to pick the tenant's data and theme.
+    // Android ships Burger Joint only; Cafe Local is an iOS-only brand (iosApp/Configuration).
     flavorDimensions += "brand"
     productFlavors {
         create("burgerjoint") {
             dimension = "brand"
             applicationId = "com.burgerjoint.app"
             resValue("string", "app_name", "Burger Joint")
-        }
-        create("cafelocal") {
-            dimension = "brand"
-            applicationId = "com.cafelocal.espresso"
-            resValue("string", "app_name", "Cafe Local")
         }
     }
 

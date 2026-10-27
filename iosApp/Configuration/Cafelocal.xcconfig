@@ -1,0 +1,7 @@
+#include "Config.xcconfig"
+
+// Brand: Cafe Local. iOS-only; Android ships Burger Joint (androidApp productFlavors).
+// BRAND names the iosApp/<BRAND>/ folder whose GoogleService-Info.plist is copied into the app.
+BRAND=cafelocal
+PRODUCT_BUNDLE_IDENTIFIER=com.cafelocal.espresso
+INFOPLIST_KEY_CFBundleDisplayName=Cafe Local
