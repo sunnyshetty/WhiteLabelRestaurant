@@ -24,8 +24,9 @@ class MenuViewModelTest {
     private val repository = FakeRestaurantRepository()
 
     private val burger = item("burger", "Burgers")
-    private val fries = item("fries", "Sides")
     private val shake = item("shake", "Drinks")
+    private val fries = item("fries", "Sides")
+    private val cheeseburger = item("cheeseburger", "Burgers")
     private val espresso = item("espresso", "Drinks")
 
     @BeforeTest fun setUp() { Dispatchers.setMain(testDispatcher) }
@@ -42,29 +43,29 @@ class MenuViewModelTest {
     }
 
     @Test
-    fun `lists categories in menu order and filters by the selected tab`() = runTest {
-        repository.menu("downtown").value = listOf(burger, fries, shake)
+    fun `groups items by category in the order categories first appear`() = runTest {
+        repository.menu("downtown").value = listOf(burger, shake, fries, cheeseburger)
         val viewModel = viewModel()
 
         viewModel.state.test {
             skipItems(1)
             viewModel.onAction(MenuAction.SelectBranch("downtown"))
             assertEquals(
-                MenuState(items = listOf(burger, fries, shake), categories = listOf("Burgers", "Sides", "Drinks")),
+                MenuState(
+                    categories = listOf(
+                        MenuCategory("Burgers", listOf(burger, cheeseburger)),
+                        MenuCategory("Drinks", listOf(shake)),
+                        MenuCategory("Sides", listOf(fries)),
+                    ),
+                ),
                 awaitItemMatching { !it.isLoading },
             )
-
-            viewModel.onAction(MenuAction.SelectCategory("Drinks"))
-            assertEquals(listOf(shake), awaitItem().items)
-
-            viewModel.onAction(MenuAction.SelectCategory(null))
-            assertEquals(listOf(burger, fries, shake), awaitItem().items)
         }
     }
 
     @Test
-    fun `switching branch resets the tab and stops the previous branch stream`() = runTest {
-        repository.menu("downtown").value = listOf(burger, shake)
+    fun `switching branch stops the previous branch stream`() = runTest {
+        repository.menu("downtown").value = listOf(burger)
         repository.menu("harbour").value = listOf(espresso)
         val viewModel = viewModel()
 
@@ -72,16 +73,14 @@ class MenuViewModelTest {
             skipItems(1)
             viewModel.onAction(MenuAction.SelectBranch("downtown"))
             awaitItemMatching { !it.isLoading }
-            viewModel.onAction(MenuAction.SelectCategory("Drinks"))
-            awaitItem()
 
             viewModel.onAction(MenuAction.SelectBranch("harbour"))
             assertEquals(
-                MenuState(items = listOf(espresso), categories = listOf("Drinks")),
-                awaitItemMatching { !it.isLoading && it.items == listOf(espresso) },
+                MenuState(categories = listOf(MenuCategory("Drinks", listOf(espresso)))),
+                awaitItemMatching { !it.isLoading },
             )
 
-            repository.menu("downtown").value = listOf(burger)
+            repository.menu("downtown").value = listOf(burger, fries)
             expectNoEvents()
         }
     }

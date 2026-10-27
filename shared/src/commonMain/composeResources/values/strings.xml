@@ -27,12 +27,10 @@
     <string name="onboarding_no_branches">No branches are open yet.</string>
 
     <!-- Menu -->
-    <string name="menu_tab_all">All</string>
     <string name="menu_empty">Nothing on the menu yet.</string>
-    <string name="menu_in_stock">In stock</string>
     <string name="menu_sold_out">Sold out</string>
     <!-- %1$s = whole units, %2$s = two-digit cents. Translators set symbol and separator. -->
-    <string name="menu_price">$%1$s.%2$s</string>
+    <string name="menu_price">€%1$s.%2$s</string>
 
     <!-- Reservation steps -->
     <string name="reservation_step_party_size">1. Party size</string>

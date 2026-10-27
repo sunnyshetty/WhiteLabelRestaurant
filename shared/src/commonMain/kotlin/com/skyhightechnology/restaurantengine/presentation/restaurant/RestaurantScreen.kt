@@ -59,7 +59,7 @@ fun RestaurantScreen(
     branchId: String,
     onBack: () -> Unit,
     onBookTable: () -> Unit,
-    onViewMenu: () -> Unit,
+    onViewMenu: (branchName: String) -> Unit,
     viewModel: RestaurantViewModel = koinViewModel(),
 ) {
     LaunchedEffect(branchId) { viewModel.onAction(RestaurantAction.SelectBranch(branchId)) }
@@ -89,7 +89,7 @@ fun RestaurantScreen(
                 brandName = brandName,
                 branch = branch,
                 onBookTable = onBookTable,
-                onViewMenu = onViewMenu,
+                onViewMenu = { onViewMenu(branch.name) },
                 modifier = Modifier.padding(padding),
             )
         }

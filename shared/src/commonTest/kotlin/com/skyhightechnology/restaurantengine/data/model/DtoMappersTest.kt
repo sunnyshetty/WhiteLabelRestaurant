@@ -38,6 +38,13 @@ class DtoMappersTest {
     }
 
     @Test
+    fun `menu item dto reads cents from the price field`() {
+        val dto = Json.decodeFromString<MenuItemDto>("""{"name":"Burger","price":1650,"category":"Mains"}""")
+
+        assertEquals(1650, dto.priceInCents)
+    }
+
+    @Test
     fun `menu item dto keeps nullable fields`() {
         val dto = MenuItemDto(name = "Classic", priceInCents = 1299, category = "Burgers", isAvailable = true)
 
@@ -71,7 +78,7 @@ class DtoMappersTest {
 
     @Test
     fun `menu item dto decodes a document with missing optional fields`() {
-        val dto = Json.decodeFromString<MenuItemDto>("""{"name":"Fries","priceInCents":399}""")
+        val dto = Json.decodeFromString<MenuItemDto>("""{"name":"Fries","price":399}""")
 
         assertEquals(MenuItemDto(name = "Fries", priceInCents = 399), dto)
     }

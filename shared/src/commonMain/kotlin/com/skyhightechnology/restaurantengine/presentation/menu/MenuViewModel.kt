@@ -4,69 +4,44 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.skyhightechnology.restaurantengine.domain.model.MenuItem
 import com.skyhightechnology.restaurantengine.domain.repository.RestaurantRepository
-import com.skyhightechnology.restaurantengine.presentation.LoadError
 import com.skyhightechnology.restaurantengine.presentation.toLoadError
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 
-/** Streams the selected branch's menu live; switching branch cancels the previous stream. */
+/** Streams the selected branch's menu live, grouped by category; switching branch cancels the previous stream. */
 class MenuViewModel(
     private val restaurantId: String,
     private val repository: RestaurantRepository,
 ) : ViewModel() {
 
     private val branchId = MutableStateFlow<String?>(null)
-    private val selectedCategory = MutableStateFlow<String?>(null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val menu: Flow<MenuLoad> = branchId.flatMapLatest { id ->
+    val state: StateFlow<MenuState> = branchId.flatMapLatest { id ->
         if (id == null) {
-            flowOf(MenuLoad.Idle)
+            flowOf(MenuState())
         } else {
             repository.streamBranchMenu(restaurantId, id)
-                .map<List<MenuItem>, MenuLoad> { MenuLoad.Loaded(it) }
-                .onStart { emit(MenuLoad.Loading) }
-                .catch { emit(MenuLoad.Failed(it.toLoadError())) }
-        }
-    }
-
-    val state: StateFlow<MenuState> = combine(menu, selectedCategory) { load, category ->
-        when (load) {
-            MenuLoad.Idle -> MenuState()
-            MenuLoad.Loading -> MenuState(selectedCategory = category, isLoading = true)
-            is MenuLoad.Failed -> MenuState(selectedCategory = category, error = load.error)
-            is MenuLoad.Loaded -> MenuState(
-                items = if (category == null) load.items else load.items.filter { it.category == category },
-                categories = load.items.map { it.category }.distinct(),
-                selectedCategory = category,
-            )
+                .map { MenuState(categories = it.groupByCategory()) }
+                .onStart { emit(MenuState(isLoading = true)) }
+                .catch { emit(MenuState(error = it.toLoadError())) }
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), MenuState())
 
     fun onAction(action: MenuAction) {
         when (action) {
-            is MenuAction.SelectBranch -> {
-                selectedCategory.value = null
-                branchId.value = action.branchId
-            }
-            is MenuAction.SelectCategory -> selectedCategory.value = action.category
+            is MenuAction.SelectBranch -> branchId.value = action.branchId
         }
     }
 
-    private sealed interface MenuLoad {
-        data object Idle : MenuLoad
-        data object Loading : MenuLoad
-        data class Loaded(val items: List<MenuItem>) : MenuLoad
-        data class Failed(val error: LoadError) : MenuLoad
-    }
+    private fun List<MenuItem>.groupByCategory(): List<MenuCategory> =
+        groupBy { it.category }.map { (name, items) -> MenuCategory(name, items) }
 }
