@@ -1,9 +1,12 @@
 package com.skyhightechnology.restaurantengine.presentation.onboarding
 
 import app.cash.turbine.test
+import com.skyhightechnology.restaurantengine.domain.model.DataError
+import com.skyhightechnology.restaurantengine.domain.model.DataException
 import com.skyhightechnology.restaurantengine.domain.model.RestaurantBranch
 import com.skyhightechnology.restaurantengine.domain.repository.FakeRestaurantRepository
-import com.skyhightechnology.restaurantengine.domain.usecase.StreamBranchesUseCase
+import com.skyhightechnology.restaurantengine.presentation.LoadError
+import com.skyhightechnology.restaurantengine.presentation.awaitItemMatching
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -25,7 +28,7 @@ class OnboardingViewModelTest {
     @BeforeTest fun setUp() { Dispatchers.setMain(testDispatcher) }
     @AfterTest fun tearDown() { Dispatchers.resetMain() }
 
-    private fun viewModel() = OnboardingViewModel("com.burgerjoint.app", StreamBranchesUseCase(repository))
+    private fun viewModel() = OnboardingViewModel("com.burgerjoint.app", repository)
 
     @Test
     fun `streams branch updates live`() = runTest {
@@ -43,12 +46,27 @@ class OnboardingViewModelTest {
 
     @Test
     fun `surfaces a stream failure`() = runTest {
-        repository.streamError = IllegalStateException("PERMISSION_DENIED")
+        repository.streamError = DataException(DataError.PermissionDenied)
         val viewModel = viewModel()
 
         viewModel.state.test {
             assertEquals(OnboardingState(isLoading = true), awaitItem())
-            assertEquals(OnboardingState(error = "PERMISSION_DENIED"), awaitItem())
+            assertEquals(OnboardingState(error = LoadError.PermissionDenied), awaitItem())
+        }
+    }
+
+    @Test
+    fun `retry resubscribes after a failure`() = runTest {
+        repository.streamError = DataException(DataError.Offline)
+        repository.branches.value = listOf(downtown)
+        val viewModel = viewModel()
+
+        viewModel.state.test {
+            assertEquals(OnboardingState(error = LoadError.Offline), awaitItemMatching { !it.isLoading })
+
+            repository.streamError = null
+            viewModel.onAction(OnboardingAction.Retry)
+            assertEquals(OnboardingState(branches = listOf(downtown)), awaitItemMatching { !it.isLoading })
         }
     }
 }

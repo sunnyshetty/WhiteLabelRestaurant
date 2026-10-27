@@ -36,7 +36,6 @@ Every file inside `shared/src/commonMain/kotlin/` must fit into one of these thr
 These files sit outside the three layers by design and must not be flagged for their location:
 - `.../di/` — the ONLY place where implementations are bound to interfaces (Koin modules, `initKoin()`). It may import from every layer.
 - `.../Platform.kt` — `expect` declarations for platform identity (`getApplicationId()`), the single source of tenant identity.
-- `.../App.kt` — the root `@Composable` entry point called by each platform.
 
 Any OTHER file directly under the root package, or in a package outside `domain`/`data`/`presentation`/`di`, is a violation.
 

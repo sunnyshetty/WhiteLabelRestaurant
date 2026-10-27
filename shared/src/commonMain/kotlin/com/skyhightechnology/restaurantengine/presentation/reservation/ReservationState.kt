@@ -3,8 +3,19 @@ package com.skyhightechnology.restaurantengine.presentation.reservation
 data class ReservationState(
     val isSubmitting: Boolean = false,
     val isSuccess: Boolean = false,
-    val error: String? = null,
+    val error: ReservationError? = null,
 )
+
+/** Validation and submit failures. The UI maps each case to one string resource. */
+sealed interface ReservationError {
+    data object NoBranch : ReservationError
+    data object MissingName : ReservationError
+    data object MissingPartySize : ReservationError
+    data object MissingTime : ReservationError
+    data object Offline : ReservationError
+    data object PermissionDenied : ReservationError
+    data object SubmitFailed : ReservationError
+}
 
 sealed interface ReservationAction {
     data class Submit(

@@ -2,7 +2,8 @@ package com.skyhightechnology.restaurantengine.presentation.theme
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.skyhightechnology.restaurantengine.domain.usecase.GetCorporateConfigUseCase
+import com.skyhightechnology.restaurantengine.domain.repository.RestaurantRepository
+import com.skyhightechnology.restaurantengine.presentation.toLoadError
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,7 +17,7 @@ import kotlinx.coroutines.launch
  */
 class GlobalConfigViewModel(
     private val restaurantId: String,
-    private val getCorporateConfig: GetCorporateConfigUseCase,
+    private val repository: RestaurantRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(GlobalThemeState(isLoading = true))
@@ -30,6 +31,7 @@ class GlobalConfigViewModel(
         when (action) {
             GlobalConfigAction.Retry -> loadConfig()
             is GlobalConfigAction.SelectBranch -> _state.update { it.copy(selectedBranchId = action.branchId) }
+            GlobalConfigAction.ClearBranch -> _state.update { it.copy(selectedBranchId = null) }
         }
     }
 
@@ -37,12 +39,12 @@ class GlobalConfigViewModel(
         _state.update { it.copy(isLoading = true, error = null) }
         viewModelScope.launch {
             try {
-                val config = getCorporateConfig(restaurantId)
+                val config = repository.getCorporateConfig(restaurantId)
                 _state.update { it.copy(brandConfig = config, isLoading = false) }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                _state.update { it.copy(isLoading = false, error = e.message ?: "Couldn't load restaurant config") }
+                _state.update { it.copy(isLoading = false, error = e.toLoadError()) }
             }
         }
     }

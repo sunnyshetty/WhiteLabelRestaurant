@@ -2,8 +2,10 @@ package com.skyhightechnology.restaurantengine.presentation.reservation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.skyhightechnology.restaurantengine.domain.model.DataError
+import com.skyhightechnology.restaurantengine.domain.model.DataException
 import com.skyhightechnology.restaurantengine.domain.model.Reservation
-import com.skyhightechnology.restaurantengine.domain.usecase.CreateReservationUseCase
+import com.skyhightechnology.restaurantengine.domain.repository.RestaurantRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,7 +15,7 @@ import kotlinx.coroutines.launch
 
 class ReservationViewModel(
     private val restaurantId: String,
-    private val createReservation: CreateReservationUseCase,
+    private val repository: RestaurantRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ReservationState())
@@ -46,22 +48,28 @@ class ReservationViewModel(
         )
         viewModelScope.launch {
             try {
-                createReservation(restaurantId, reservation)
+                repository.createReservation(restaurantId, reservation)
                 _state.value = ReservationState(isSuccess = true)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                _state.value = ReservationState(error = e.message ?: "Couldn't submit the reservation")
+                _state.value = ReservationState(error = e.toReservationError())
             }
         }
     }
 
-    private fun validate(entry: ReservationAction.Submit): String? = when {
-        entry.branchId.isNullOrBlank() -> "Choose a branch first"
-        entry.customerName.isBlank() -> "Enter a name for the reservation"
-        entry.partySize < 1 -> "Party size must be at least 1"
-        entry.reservationTime.isBlank() -> "Choose a reservation time"
+    private fun validate(entry: ReservationAction.Submit): ReservationError? = when {
+        entry.branchId.isNullOrBlank() -> ReservationError.NoBranch
+        entry.customerName.isBlank() -> ReservationError.MissingName
+        entry.partySize < 1 -> ReservationError.MissingPartySize
+        entry.reservationTime.isBlank() -> ReservationError.MissingTime
         else -> null
+    }
+
+    private fun Exception.toReservationError(): ReservationError = when ((this as? DataException)?.error) {
+        DataError.Offline -> ReservationError.Offline
+        DataError.PermissionDenied -> ReservationError.PermissionDenied
+        DataError.NotFound, DataError.Unknown, null -> ReservationError.SubmitFailed
     }
 
     private companion object {

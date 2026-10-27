@@ -1,16 +1,20 @@
 package com.skyhightechnology.restaurantengine.presentation.theme
 
 import com.skyhightechnology.restaurantengine.domain.model.RestaurantConfig
+import com.skyhightechnology.restaurantengine.presentation.LoadError
 
 /** App-wide tenant state: the brand's corporate config and the branch the guest chose. */
 data class GlobalThemeState(
     val brandConfig: RestaurantConfig? = null,
     val selectedBranchId: String? = null,
     val isLoading: Boolean = false,
-    val error: String? = null,
+    val error: LoadError? = null,
 )
 
 sealed interface GlobalConfigAction {
     data object Retry : GlobalConfigAction
     data class SelectBranch(val branchId: String) : GlobalConfigAction
+
+    /** Returns to onboarding to pick another branch. */
+    data object ClearBranch : GlobalConfigAction
 }

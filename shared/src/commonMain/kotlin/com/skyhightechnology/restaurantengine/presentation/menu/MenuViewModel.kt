@@ -3,7 +3,9 @@ package com.skyhightechnology.restaurantengine.presentation.menu
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.skyhightechnology.restaurantengine.domain.model.MenuItem
-import com.skyhightechnology.restaurantengine.domain.usecase.StreamBranchMenuUseCase
+import com.skyhightechnology.restaurantengine.domain.repository.RestaurantRepository
+import com.skyhightechnology.restaurantengine.presentation.LoadError
+import com.skyhightechnology.restaurantengine.presentation.toLoadError
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,7 +22,7 @@ import kotlinx.coroutines.flow.stateIn
 /** Streams the selected branch's menu live; switching branch cancels the previous stream. */
 class MenuViewModel(
     private val restaurantId: String,
-    private val streamBranchMenu: StreamBranchMenuUseCase,
+    private val repository: RestaurantRepository,
 ) : ViewModel() {
 
     private val branchId = MutableStateFlow<String?>(null)
@@ -31,10 +33,10 @@ class MenuViewModel(
         if (id == null) {
             flowOf(MenuLoad.Idle)
         } else {
-            streamBranchMenu(restaurantId, id)
+            repository.streamBranchMenu(restaurantId, id)
                 .map<List<MenuItem>, MenuLoad> { MenuLoad.Loaded(it) }
                 .onStart { emit(MenuLoad.Loading) }
-                .catch { emit(MenuLoad.Failed(it.message ?: "Couldn't load the menu")) }
+                .catch { emit(MenuLoad.Failed(it.toLoadError())) }
         }
     }
 
@@ -42,7 +44,7 @@ class MenuViewModel(
         when (load) {
             MenuLoad.Idle -> MenuState()
             MenuLoad.Loading -> MenuState(selectedCategory = category, isLoading = true)
-            is MenuLoad.Failed -> MenuState(selectedCategory = category, error = load.message)
+            is MenuLoad.Failed -> MenuState(selectedCategory = category, error = load.error)
             is MenuLoad.Loaded -> MenuState(
                 items = if (category == null) load.items else load.items.filter { it.category == category },
                 categories = load.items.map { it.category }.distinct(),
@@ -65,6 +67,6 @@ class MenuViewModel(
         data object Idle : MenuLoad
         data object Loading : MenuLoad
         data class Loaded(val items: List<MenuItem>) : MenuLoad
-        data class Failed(val message: String) : MenuLoad
+        data class Failed(val error: LoadError) : MenuLoad
     }
 }

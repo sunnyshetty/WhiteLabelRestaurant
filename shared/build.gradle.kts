@@ -57,9 +57,11 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+            implementation(libs.androidx.navigation.compose)
 
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.serialization.json)
+            implementation(libs.kotlinx.datetime)
 
             implementation(libs.gitlive.firebase.auth)
             implementation(libs.gitlive.firebase.firestore)
@@ -75,9 +77,18 @@ kotlin {
             implementation(libs.turbine)
             implementation(libs.koin.test)
         }
+        jvmTest.dependencies {
+            // Native Skiko runtime, so compose-resources tests can resolve strings on the JVM.
+            implementation(compose.desktop.currentOs)
+        }
     }
 }
 
 dependencies {
     androidRuntimeClasspath(libs.compose.uiTooling)
+}
+
+compose.resources {
+    // Generated accessors: com.skyhightechnology.restaurantengine.resources.Res
+    packageOfResClass = "com.skyhightechnology.restaurantengine.resources"
 }

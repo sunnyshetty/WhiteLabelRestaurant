@@ -6,6 +6,7 @@ import com.skyhightechnology.restaurantengine.domain.model.RestaurantBranch
 import com.skyhightechnology.restaurantengine.domain.model.RestaurantConfig
 import kotlinx.coroutines.flow.Flow
 
+/** Implementations report every failure as a [com.skyhightechnology.restaurantengine.domain.model.DataException]. */
 interface RestaurantRepository {
     suspend fun getCorporateConfig(restaurantId: String): RestaurantConfig
 

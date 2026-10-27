@@ -1,9 +1,11 @@
 package com.skyhightechnology.restaurantengine.presentation.menu
 
 import app.cash.turbine.test
+import com.skyhightechnology.restaurantengine.domain.model.DataError
+import com.skyhightechnology.restaurantengine.domain.model.DataException
 import com.skyhightechnology.restaurantengine.domain.model.MenuItem
 import com.skyhightechnology.restaurantengine.domain.repository.FakeRestaurantRepository
-import com.skyhightechnology.restaurantengine.domain.usecase.StreamBranchMenuUseCase
+import com.skyhightechnology.restaurantengine.presentation.LoadError
 import com.skyhightechnology.restaurantengine.presentation.awaitItemMatching
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -29,7 +31,7 @@ class MenuViewModelTest {
     @BeforeTest fun setUp() { Dispatchers.setMain(testDispatcher) }
     @AfterTest fun tearDown() { Dispatchers.resetMain() }
 
-    private fun viewModel() = MenuViewModel("com.burgerjoint.app", StreamBranchMenuUseCase(repository))
+    private fun viewModel() = MenuViewModel("com.burgerjoint.app", repository)
 
     @Test
     fun `stays empty until a branch is selected`() = runTest {
@@ -86,13 +88,13 @@ class MenuViewModelTest {
 
     @Test
     fun `surfaces a stream failure`() = runTest {
-        repository.streamError = IllegalStateException("PERMISSION_DENIED")
+        repository.streamError = DataException(DataError.PermissionDenied)
         val viewModel = viewModel()
 
         viewModel.state.test {
             skipItems(1)
             viewModel.onAction(MenuAction.SelectBranch("downtown"))
-            assertEquals(MenuState(error = "PERMISSION_DENIED"), awaitItemMatching { !it.isLoading })
+            assertEquals(MenuState(error = LoadError.PermissionDenied), awaitItemMatching { !it.isLoading })
         }
     }
 

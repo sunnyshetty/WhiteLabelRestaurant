@@ -1,9 +1,11 @@
 package com.skyhightechnology.restaurantengine.presentation.theme
 
 import app.cash.turbine.test
+import com.skyhightechnology.restaurantengine.domain.model.DataError
+import com.skyhightechnology.restaurantengine.domain.model.DataException
 import com.skyhightechnology.restaurantengine.domain.model.RestaurantConfig
 import com.skyhightechnology.restaurantengine.domain.repository.FakeRestaurantRepository
-import com.skyhightechnology.restaurantengine.domain.usecase.GetCorporateConfigUseCase
+import com.skyhightechnology.restaurantengine.presentation.LoadError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -24,7 +26,7 @@ class GlobalConfigViewModelTest {
     @BeforeTest fun setUp() { Dispatchers.setMain(testDispatcher) }
     @AfterTest fun tearDown() { Dispatchers.resetMain() }
 
-    private fun viewModel() = GlobalConfigViewModel("com.burgerjoint.app", GetCorporateConfigUseCase(repository))
+    private fun viewModel() = GlobalConfigViewModel("com.burgerjoint.app", repository)
 
     @Test
     fun `loads the tenant config on creation`() = runTest {
@@ -40,12 +42,12 @@ class GlobalConfigViewModelTest {
 
     @Test
     fun `surfaces a load failure and recovers on retry`() = runTest {
-        repository.configError = IllegalStateException("No restaurant config")
+        repository.configError = DataException(DataError.NotFound)
         val viewModel = viewModel()
 
         viewModel.state.test {
             assertEquals(GlobalThemeState(isLoading = true), awaitItem())
-            assertEquals(GlobalThemeState(error = "No restaurant config"), awaitItem())
+            assertEquals(GlobalThemeState(error = LoadError.NotFound), awaitItem())
 
             repository.configError = null
             repository.config = config
@@ -57,7 +59,18 @@ class GlobalConfigViewModelTest {
     }
 
     @Test
-    fun `selecting a branch keeps the loaded config`() = runTest {
+    fun `unexpected exceptions become an unknown load error`() = runTest {
+        repository.configError = IllegalArgumentException("bad document shape")
+        val viewModel = viewModel()
+
+        viewModel.state.test {
+            skipItems(1)
+            assertEquals(GlobalThemeState(error = LoadError.Unknown), awaitItem())
+        }
+    }
+
+    @Test
+    fun `selecting and clearing a branch keeps the loaded config`() = runTest {
         repository.config = config
         val viewModel = viewModel()
 
@@ -65,6 +78,9 @@ class GlobalConfigViewModelTest {
             skipItems(2)
             viewModel.onAction(GlobalConfigAction.SelectBranch("downtown"))
             assertEquals(GlobalThemeState(brandConfig = config, selectedBranchId = "downtown"), awaitItem())
+
+            viewModel.onAction(GlobalConfigAction.ClearBranch)
+            assertEquals(GlobalThemeState(brandConfig = config), awaitItem())
         }
     }
 }

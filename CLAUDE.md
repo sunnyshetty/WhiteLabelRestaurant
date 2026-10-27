@@ -34,6 +34,8 @@ Modules (`settings.gradle.kts`): `shared` (all engine code + UI, built as static
 
 `domain/{model,repository,usecase}` — pure Kotlin, no Compose/Firebase/serialization/Koin imports. `data/{model,repository}` — `@Serializable` DTOs and repository implementations (Firebase lives here only). `presentation/{component,theme,<feature>}` — composables and `ViewModel`s exposing `StateFlow<UiState>`; never imports `data`. `di/` — the only place implementations are bound to interfaces. Banned imports per layer and the review workflow: `.skills/architecture-linter.md`.
 
+**Errors and text:** repositories throw only `domain.model.DataException(DataError)` (Firestore codes are mapped in `data/repository/FirestoreErrors.kt`). ViewModels convert it to presentation sealed types (`LoadError`, `ReservationError`) in their UI state and never hold display text. All user-facing text lives in `shared/src/commonMain/composeResources/values/strings.xml`; composables map each error case 1:1 via an exhaustive `messageRes` and call `stringResource(Res.string…)` (`Res` is in `com.skyhightechnology.restaurantengine.resources`). No string literals in UI code.
+
 `koin-core` is an `api` dependency of `shared` because `initKoin()` is called from each platform entry point (Android `WhiteLabelApplication`, desktop `main()`, iOS `MainViewController` configure block).
 
 ### Testing

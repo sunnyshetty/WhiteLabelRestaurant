@@ -2,10 +2,6 @@ package com.skyhightechnology.restaurantengine.di
 
 import com.skyhightechnology.restaurantengine.data.repository.FirestoreRestaurantRepository
 import com.skyhightechnology.restaurantengine.domain.repository.RestaurantRepository
-import com.skyhightechnology.restaurantengine.domain.usecase.CreateReservationUseCase
-import com.skyhightechnology.restaurantengine.domain.usecase.GetCorporateConfigUseCase
-import com.skyhightechnology.restaurantengine.domain.usecase.StreamBranchMenuUseCase
-import com.skyhightechnology.restaurantengine.domain.usecase.StreamBranchesUseCase
 import com.skyhightechnology.restaurantengine.getApplicationId
 import com.skyhightechnology.restaurantengine.presentation.menu.MenuViewModel
 import com.skyhightechnology.restaurantengine.presentation.onboarding.OnboardingViewModel
@@ -29,12 +25,7 @@ val engineModule = module {
     single<FirebaseFirestore> { Firebase.firestore }
     single<RestaurantRepository> { FirestoreRestaurantRepository(get()) }
 
-    factory { GetCorporateConfigUseCase(get()) }
-    factory { StreamBranchesUseCase(get()) }
-    factory { StreamBranchMenuUseCase(get()) }
-    factory { CreateReservationUseCase(get()) }
-
-    // The tenant ID is the restaurantId: each brand's data lives at restaurants/{applicationId}.
+    // ViewModels take the repository directly. The tenant ID is the restaurantId: each brand's data lives at restaurants/{applicationId}.
     viewModel { GlobalConfigViewModel(get(TenantId), get()) }
     viewModel { OnboardingViewModel(get(TenantId), get()) }
     viewModel { MenuViewModel(get(TenantId), get()) }

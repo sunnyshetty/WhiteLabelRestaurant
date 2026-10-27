@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Shared status and actions -->
+    <string name="error_title">Something went wrong</string>
+    <string name="action_try_again">Try again</string>
+    <string name="action_retry">Retry</string>
+    <string name="action_dismiss">Dismiss</string>
+
+    <!-- LoadError: one string per case -->
+    <string name="load_error_offline">You're offline. Check your connection and try again.</string>
+    <string name="load_error_permission_denied">This restaurant isn't available right now.</string>
+    <string name="load_error_not_found">We couldn't find this restaurant.</string>
+    <string name="load_error_unknown">Something unexpected happened. Please try again.</string>
+
+    <!-- App shell -->
+    <string name="nav_menu">Menu</string>
+    <string name="nav_reserve">Reserve</string>
+    <string name="action_change_branch">Change branch</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_choose_branch">Choose your branch</string>
+    <string name="onboarding_no_branches">No branches are open yet.</string>
+
+    <!-- Menu -->
+    <string name="menu_tab_all">All</string>
+    <string name="menu_empty">Nothing on the menu yet.</string>
+    <string name="menu_in_stock">In stock</string>
+    <string name="menu_sold_out">Sold out</string>
+    <!-- %1$s = whole units, %2$s = two-digit cents. Translators set symbol and separator. -->
+    <string name="menu_price">$%1$s.%2$s</string>
+
+    <!-- Reservation steps -->
+    <string name="reservation_step_party_size">1. Party size</string>
+    <string name="reservation_step_date">2. Date</string>
+    <string name="reservation_step_time">3. Time</string>
+    <string name="reservation_step_name">4. Your name</string>
+    <plurals name="reservation_party_size">
+        <item quantity="one">%1$d guest</item>
+        <item quantity="other">%1$d guests</item>
+    </plurals>
+    <string name="reservation_pick_date_first">Pick a date to see times.</string>
+    <string name="reservation_name_label">Name for the booking</string>
+    <string name="reservation_confirm">Confirm Booking</string>
+    <string name="reservation_success_title">Booking requested</string>
+    <string name="reservation_success_body">Your table request has been sent to the branch.</string>
+    <string name="reservation_book_another">Book another table</string>
+
+    <!-- Date rail labels -->
+    <string name="day_today">Today</string>
+    <string name="day_tomorrow">Tomorrow</string>
+    <string name="weekday_short_monday">Mon</string>
+    <string name="weekday_short_tuesday">Tue</string>
+    <string name="weekday_short_wednesday">Wed</string>
+    <string name="weekday_short_thursday">Thu</string>
+    <string name="weekday_short_friday">Fri</string>
+    <string name="weekday_short_saturday">Sat</string>
+    <string name="weekday_short_sunday">Sun</string>
+
+    <!-- ReservationError: one string per case -->
+    <string name="reservation_error_no_branch">Choose a branch first.</string>
+    <string name="reservation_error_missing_name">Enter a name for the reservation.</string>
+    <string name="reservation_error_missing_party_size">Choose how many guests are coming.</string>
+    <string name="reservation_error_missing_time">Choose a time for the reservation.</string>
+    <string name="reservation_error_offline">You're offline, so your booking wasn't sent.</string>
+    <string name="reservation_error_permission_denied">This branch isn't taking bookings right now.</string>
+    <string name="reservation_error_submit_failed">Your booking couldn't be sent. Please try again.</string>
+</resources>

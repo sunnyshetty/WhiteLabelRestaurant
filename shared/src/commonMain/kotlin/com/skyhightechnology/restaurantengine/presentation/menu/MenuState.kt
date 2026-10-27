@@ -1,6 +1,7 @@
 package com.skyhightechnology.restaurantengine.presentation.menu
 
 import com.skyhightechnology.restaurantengine.domain.model.MenuItem
+import com.skyhightechnology.restaurantengine.presentation.LoadError
 
 /**
  * [items] is already filtered to [selectedCategory]; `null` means the "All" tab.
@@ -11,7 +12,7 @@ data class MenuState(
     val categories: List<String> = emptyList(),
     val selectedCategory: String? = null,
     val isLoading: Boolean = false,
-    val error: String? = null,
+    val error: LoadError? = null,
 )
 
 sealed interface MenuAction {

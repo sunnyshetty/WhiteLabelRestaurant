@@ -2,6 +2,7 @@ package com.skyhightechnology.restaurantengine
 
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import com.skyhightechnology.restaurantengine.presentation.App
 import com.skyhightechnology.restaurantengine.di.initKoin
 
 fun main() {

@@ -1,9 +1,10 @@
 package com.skyhightechnology.restaurantengine.presentation.reservation
 
 import app.cash.turbine.test
+import com.skyhightechnology.restaurantengine.domain.model.DataError
+import com.skyhightechnology.restaurantengine.domain.model.DataException
 import com.skyhightechnology.restaurantengine.domain.model.Reservation
 import com.skyhightechnology.restaurantengine.domain.repository.FakeRestaurantRepository
-import com.skyhightechnology.restaurantengine.domain.usecase.CreateReservationUseCase
 import com.skyhightechnology.restaurantengine.presentation.awaitItemMatching
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -32,21 +33,21 @@ class ReservationViewModelTest {
     @BeforeTest fun setUp() { Dispatchers.setMain(testDispatcher) }
     @AfterTest fun tearDown() { Dispatchers.resetMain() }
 
-    private fun viewModel() = ReservationViewModel("com.burgerjoint.app", CreateReservationUseCase(repository))
+    private fun viewModel() = ReservationViewModel("com.burgerjoint.app", repository)
 
     @Test
     fun `rejects invalid entries without submitting`() = runTest {
         val viewModel = viewModel()
         val cases = mapOf(
-            validEntry.copy(branchId = null) to "Choose a branch first",
-            validEntry.copy(customerName = " ") to "Enter a name for the reservation",
-            validEntry.copy(partySize = 0) to "Party size must be at least 1",
-            validEntry.copy(reservationTime = "") to "Choose a reservation time",
+            validEntry.copy(branchId = null) to ReservationError.NoBranch,
+            validEntry.copy(customerName = " ") to ReservationError.MissingName,
+            validEntry.copy(partySize = 0) to ReservationError.MissingPartySize,
+            validEntry.copy(reservationTime = "") to ReservationError.MissingTime,
         )
 
-        for ((entry, message) in cases) {
+        for ((entry, error) in cases) {
             viewModel.onAction(entry)
-            assertEquals(ReservationState(error = message), viewModel.state.value)
+            assertEquals(ReservationState(error = error), viewModel.state.value)
         }
         testDispatcher.scheduler.advanceUntilIdle()
         assertTrue(repository.createdReservations.isEmpty())
@@ -79,16 +80,34 @@ class ReservationViewModelTest {
 
     @Test
     fun `surfaces a submit failure and dismisses it`() = runTest {
-        repository.createError = IllegalStateException("UNAVAILABLE")
+        repository.createError = DataException(DataError.Offline)
         val viewModel = viewModel()
 
         viewModel.state.test {
             skipItems(1)
             viewModel.onAction(validEntry)
-            assertEquals(ReservationState(error = "UNAVAILABLE"), awaitItemMatching { !it.isSubmitting })
+            assertEquals(ReservationState(error = ReservationError.Offline), awaitItemMatching { !it.isSubmitting })
 
             viewModel.onAction(ReservationAction.DismissError)
             assertEquals(ReservationState(), awaitItem())
+        }
+    }
+
+    @Test
+    fun `maps submit failures to reservation errors`() = runTest {
+        val cases = mapOf(
+            DataException(DataError.PermissionDenied) to ReservationError.PermissionDenied,
+            DataException(DataError.NotFound) to ReservationError.SubmitFailed,
+            DataException(DataError.Unknown) to ReservationError.SubmitFailed,
+            IllegalStateException("not a repository error") to ReservationError.SubmitFailed,
+        )
+
+        for ((failure, expected) in cases) {
+            repository.createError = failure
+            val viewModel = viewModel()
+            viewModel.onAction(validEntry)
+            testDispatcher.scheduler.advanceUntilIdle()
+            assertEquals(ReservationState(error = expected), viewModel.state.value)
         }
     }
 }
