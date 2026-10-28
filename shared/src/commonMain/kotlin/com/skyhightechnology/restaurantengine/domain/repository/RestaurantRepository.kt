@@ -14,6 +14,9 @@ interface RestaurantRepository {
 
     fun streamBranchMenu(restaurantId: String, branchId: String): Flow<List<MenuItem>>
 
-    /** Writes [reservation] under its branch, [Reservation.branchId]. */
-    suspend fun createReservation(restaurantId: String, reservation: Reservation)
+    /** Writes [reservation] under its branch, [Reservation.branchId], and returns its document id. */
+    suspend fun createReservation(restaurantId: String, reservation: Reservation): String
+
+    /** One reservation, live; emits null while it doesn't exist (for example after staff delete it). */
+    fun streamReservation(restaurantId: String, branchId: String, reservationId: String): Flow<Reservation?>
 }

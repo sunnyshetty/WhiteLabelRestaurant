@@ -66,6 +66,7 @@ kotlin {
 
             implementation(libs.gitlive.firebase.auth)
             implementation(libs.gitlive.firebase.firestore)
+            implementation(libs.multiplatform.settings.noArg)
 
             api(project.dependencies.platform(libs.koin.bom))
             api(libs.koin.core) // exposed: initKoin() is called from every platform entry point

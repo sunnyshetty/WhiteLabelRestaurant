@@ -5,35 +5,82 @@ import androidx.lifecycle.viewModelScope
 import com.skyhightechnology.restaurantengine.domain.model.DataError
 import com.skyhightechnology.restaurantengine.domain.model.DataException
 import com.skyhightechnology.restaurantengine.domain.model.Reservation
+import com.skyhightechnology.restaurantengine.domain.repository.ReservationHistory
 import com.skyhightechnology.restaurantengine.domain.repository.RestaurantRepository
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.time.Clock
+import kotlin.time.Instant
 
+/**
+ * Books a table, or shows the guest's upcoming booking at the branch instead. Guests have no account,
+ * so [history] remembers on the device which reservation they made; the booking itself is streamed live
+ * from the repository, so a status change by the branch shows straight away.
+ */
 class ReservationViewModel(
     private val restaurantId: String,
     private val repository: RestaurantRepository,
+    private val history: ReservationHistory,
+    private val clock: Clock = Clock.System,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ReservationState())
     val state: StateFlow<ReservationState> = _state.asStateFlow()
 
+    private var branchId: String? = null
+    private var watchJob: Job? = null
+
     fun onAction(action: ReservationAction) {
         when (action) {
+            is ReservationAction.SelectBranch -> selectBranch(action.branchId)
             is ReservationAction.Submit -> submit(action)
             ReservationAction.DismissError -> _state.update { it.copy(error = null) }
-            ReservationAction.Reset -> _state.value = ReservationState()
+            ReservationAction.Reset -> {
+                watchJob?.cancel()
+                _state.value = ReservationState()
+            }
         }
     }
+
+    private fun selectBranch(branchId: String) {
+        if (branchId == this.branchId) return
+        this.branchId = branchId
+        val reservationId = history.lastReservationId(restaurantId, branchId)
+        if (reservationId == null) {
+            watchJob?.cancel()
+            _state.value = ReservationState()
+        } else {
+            _state.value = ReservationState(isLoading = true)
+            watch(branchId, reservationId)
+        }
+    }
+
+    /** Past, deleted or unreadable bookings leave the form in place. */
+    private fun watch(branchId: String, reservationId: String) {
+        watchJob?.cancel()
+        watchJob = viewModelScope.launch {
+            repository.streamReservation(restaurantId, branchId, reservationId)
+                .catch { _state.update { it.copy(isLoading = false) } }
+                .collect { reservation ->
+                    _state.update { it.copy(isLoading = false, reservation = reservation?.takeIf(::isUpcoming)) }
+                }
+        }
+    }
+
+    private fun isUpcoming(reservation: Reservation): Boolean =
+        runCatching { Instant.parse(reservation.reservationTime) > clock.now() }.getOrDefault(false)
 
     private fun submit(entry: ReservationAction.Submit) {
         if (_state.value.isSubmitting) return
         val validationError = validate(entry)
         if (validationError != null) {
-            _state.update { it.copy(isSuccess = false, error = validationError) }
+            _state.update { it.copy(error = validationError) }
             return
         }
 
@@ -51,8 +98,10 @@ class ReservationViewModel(
         )
         viewModelScope.launch {
             try {
-                repository.createReservation(restaurantId, reservation)
-                _state.value = ReservationState(isSuccess = true)
+                val id = repository.createReservation(restaurantId, reservation)
+                history.saveReservationId(restaurantId, reservation.branchId, id)
+                _state.value = ReservationState(reservation = reservation.copy(id = id))
+                watch(reservation.branchId, id)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

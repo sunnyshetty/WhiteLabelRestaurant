@@ -52,9 +52,21 @@
     <string name="reservation_requests_label">Special requests (optional)</string>
     <string name="reservation_confirm">Confirm reservation</string>
     <string name="reservation_no_account">No account needed</string>
-    <string name="reservation_success_title">Booking requested</string>
-    <string name="reservation_success_body">Your table request has been sent to the branch.</string>
     <string name="reservation_book_another">Book another table</string>
+
+    <!-- The guest's existing booking, shown instead of the form -->
+    <string name="reservation_existing_title">Your reservation</string>
+    <string name="reservation_status_pending">Requested. The branch will contact you to confirm.</string>
+    <string name="reservation_status_confirmed">Confirmed by the branch. See you soon!</string>
+    <string name="reservation_status_cancelled">Cancelled by the branch.</string>
+    <string name="reservation_when_label">When</string>
+    <string name="reservation_requests_title">Special requests</string>
+    <!-- %1$s = short weekday, %2$d = day of month, %3$s = time, e.g. "Fri 30, 19:30" -->
+    <string name="reservation_when">%1$s %2$d, %3$s</string>
+    <plurals name="reservation_guest_count">
+        <item quantity="one">%1$d guest</item>
+        <item quantity="other">%1$d guests</item>
+    </plurals>
 
     <!-- Short weekday names for the date chips -->
     <string name="weekday_short_monday">Mon</string>

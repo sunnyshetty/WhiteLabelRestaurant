@@ -29,6 +29,7 @@ Rendered from the Compose previews with sample data, in each brand's palette.
 - **Branch details:** address, opening hours, today's table availability and phone, with buttons to view the menu or book a table.
 - **Menu:** one swipeable tab per category, with prices in euros and sold-out dishes dimmed and tagged.
 - **Book a table:** pick a date in the next 7 days, the party size (1–6+) and a time slot (slots in the past are disabled), then enter contact details. Name, phone and email are validated before sending, and no account is needed.
+- **Your reservation:** if the guest already has an upcoming booking at the branch, the booking screen shows it instead of the form: date and time, guests, contact details and its status, which updates live when staff change it. "Book another table" brings the form back. The app remembers bookings on the device that made them, since guests have no account.
 - **Live data:** branches and menus are Firestore snapshot listeners, so edits in the console show up in the app straight away.
 - **Errors:** offline, permission-denied and not-found failures are each shown with their own message, and branch loading can be retried.
 
@@ -102,7 +103,8 @@ restaurants/{applicationId}                  name, primaryColor, secondaryColor 
                                              category, imageUrl, isAvailable
     reservations/{auto id}                   written by the app: customerName, customerPhone,
                                              customerEmail, specialRequests, partySize,
-                                             reservationTime (ISO-8601 UTC), status ("PENDING")
+                                             reservationTime (ISO-8601 UTC), status ("PENDING";
+                                             staff set "CONFIRMED", "CANCELLED" or "DECLINED")
 ```
 
 ## Adding a brand
@@ -120,7 +122,8 @@ Unit tests live in `shared/src/commonTest` and run on JVM, Android and iOS. They
 
 ## Known limitations and next steps
 
-- **Reservations are only stored, not processed.** Confirming a booking just saves a `PENDING` document under the branch in Firestore. There is no backend behind it: nothing checks capacity or double bookings, nobody confirms or declines the request, and the guest gets no email or SMS. Time slots are a fixed list in the app rather than coming from each branch, and "Tables today" is a flag the restaurant sets by hand.
+- **Reservations are only stored, not processed.** Confirming a booking just saves a `PENDING` document under the branch in Firestore. There is no backend behind it: nothing checks capacity or double bookings, and the guest gets no email or SMS. Staff confirm or cancel a booking by editing its `status` by hand (for example in FireCMS), and the guest sees the change in the app. Time slots are a fixed list in the app rather than coming from each branch, and "Tables today" is a flag the restaurant sets by hand.
+- **Bookings are remembered per device:** the app finds a guest's booking only on the device that made it, and only the latest booking per branch. Reinstalling the app or switching phones loses it.
 - **Placeholder images:** branch and dish images are placeholder icons; `imageUrl` isn't loaded yet.
 - **Light theme only:** the brand colour scheme is light-only, and some surfaces still use the default Material palette.
 - **Opening hours are free text,** so the app can't show "Open now".

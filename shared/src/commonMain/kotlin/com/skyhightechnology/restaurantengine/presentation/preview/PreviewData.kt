@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import com.skyhightechnology.restaurantengine.domain.model.MenuItem
+import com.skyhightechnology.restaurantengine.domain.model.Reservation
 import com.skyhightechnology.restaurantengine.domain.model.RestaurantBranch
 import com.skyhightechnology.restaurantengine.domain.model.RestaurantConfig
 import com.skyhightechnology.restaurantengine.presentation.menu.MenuCategory
@@ -77,6 +78,19 @@ internal object PreviewData {
 
     /** A fixed midday "now" so the booking previews don't change from day to day. */
     val now = LocalDateTime(2026, 10, 27, 12, 15)
+
+    /** A booking made earlier on this device, three days after [now] (previews render in UTC). */
+    val reservation = Reservation(
+        id = "r1",
+        branchId = branch.id,
+        customerName = "Sanne de Vries",
+        customerPhone = "+31 6 1234 5678",
+        customerEmail = "sanne@example.com",
+        specialRequests = "A table by the window, please.",
+        partySize = 4,
+        reservationTime = "2026-10-30T19:30:00Z",
+        status = "PENDING",
+    )
 
     private fun dish(
         id: String,

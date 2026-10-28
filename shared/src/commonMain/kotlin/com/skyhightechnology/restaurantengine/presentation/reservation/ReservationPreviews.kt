@@ -32,8 +32,20 @@ private fun ReservationSubmittingPreview() {
 
 @ScreenPreview
 @Composable
-private fun ReservationConfirmedPreview() {
-    PreviewTheme { Reservation(ReservationState(isSuccess = true)) }
+private fun ReservationExistingPreview(@PreviewParameter(BrandPreviewProvider::class) brand: RestaurantConfig) {
+    PreviewTheme(brand) { Reservation(ReservationState(reservation = PreviewData.reservation)) }
+}
+
+@ScreenPreview
+@Composable
+private fun ReservationConfirmedByBranchPreview() {
+    PreviewTheme { Reservation(ReservationState(reservation = PreviewData.reservation.copy(status = "CONFIRMED"))) }
+}
+
+@ScreenPreview
+@Composable
+private fun ReservationLoadingPreview() {
+    PreviewTheme { Reservation(ReservationState(isLoading = true)) }
 }
 
 /** With the app bar the navigation graph puts around the booking form. */

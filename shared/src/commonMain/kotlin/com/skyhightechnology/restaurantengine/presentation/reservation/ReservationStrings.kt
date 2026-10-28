@@ -1,5 +1,6 @@
 package com.skyhightechnology.restaurantengine.presentation.reservation
 
+import com.skyhightechnology.restaurantengine.domain.model.Reservation
 import com.skyhightechnology.restaurantengine.resources.Res
 import com.skyhightechnology.restaurantengine.resources.reservation_error_invalid_email
 import com.skyhightechnology.restaurantengine.resources.reservation_error_missing_name
@@ -10,6 +11,9 @@ import com.skyhightechnology.restaurantengine.resources.reservation_error_no_bra
 import com.skyhightechnology.restaurantengine.resources.reservation_error_offline
 import com.skyhightechnology.restaurantengine.resources.reservation_error_permission_denied
 import com.skyhightechnology.restaurantengine.resources.reservation_error_submit_failed
+import com.skyhightechnology.restaurantengine.resources.reservation_status_cancelled
+import com.skyhightechnology.restaurantengine.resources.reservation_status_confirmed
+import com.skyhightechnology.restaurantengine.resources.reservation_status_pending
 import com.skyhightechnology.restaurantengine.resources.weekday_short_friday
 import com.skyhightechnology.restaurantengine.resources.weekday_short_monday
 import com.skyhightechnology.restaurantengine.resources.weekday_short_saturday
@@ -32,6 +36,14 @@ val ReservationError.messageRes: StringResource
         ReservationError.Offline -> Res.string.reservation_error_offline
         ReservationError.PermissionDenied -> Res.string.reservation_error_permission_denied
         ReservationError.SubmitFailed -> Res.string.reservation_error_submit_failed
+    }
+
+/** Branch staff set `status` by hand; anything other than confirmed or cancelled is still a request. */
+val Reservation.statusRes: StringResource
+    get() = when (status.uppercase()) {
+        "CONFIRMED" -> Res.string.reservation_status_confirmed
+        "CANCELLED", "DECLINED" -> Res.string.reservation_status_cancelled
+        else -> Res.string.reservation_status_pending
     }
 
 /** Short weekday name for the date chips ("Thu"). */

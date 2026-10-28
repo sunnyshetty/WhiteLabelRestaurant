@@ -1,8 +1,13 @@
 package com.skyhightechnology.restaurantengine.presentation.reservation
 
+import com.skyhightechnology.restaurantengine.domain.model.Reservation
+
 data class ReservationState(
+    /** Looking up the booking this device made earlier at the branch. */
+    val isLoading: Boolean = false,
     val isSubmitting: Boolean = false,
-    val isSuccess: Boolean = false,
+    /** The guest's upcoming booking at this branch, shown instead of the form. Also set by a successful submit. */
+    val reservation: Reservation? = null,
     val error: ReservationError? = null,
 )
 
@@ -20,6 +25,9 @@ sealed interface ReservationError {
 }
 
 sealed interface ReservationAction {
+    /** Shows the guest's upcoming booking at [branchId], if this device made one, instead of the form. */
+    data class SelectBranch(val branchId: String) : ReservationAction
+
     data class Submit(
         val branchId: String?,
         val customerName: String,
@@ -32,6 +40,6 @@ sealed interface ReservationAction {
 
     data object DismissError : ReservationAction
 
-    /** Clears a completed booking so the form can be reused. */
+    /** Puts the form back in place of the booking, to book another table. */
     data object Reset : ReservationAction
 }

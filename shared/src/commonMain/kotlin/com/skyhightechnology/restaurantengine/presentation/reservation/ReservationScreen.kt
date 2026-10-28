@@ -14,10 +14,12 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -27,6 +29,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,37 +44,48 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.skyhightechnology.restaurantengine.presentation.component.AppIcons
+import com.skyhightechnology.restaurantengine.domain.model.Reservation
 import com.skyhightechnology.restaurantengine.presentation.component.ErrorBanner
+import com.skyhightechnology.restaurantengine.presentation.component.LoadingView
 import com.skyhightechnology.restaurantengine.resources.Res
 import com.skyhightechnology.restaurantengine.resources.action_dismiss
 import com.skyhightechnology.restaurantengine.resources.reservation_book_another
 import com.skyhightechnology.restaurantengine.resources.reservation_confirm
 import com.skyhightechnology.restaurantengine.resources.reservation_date_chip
 import com.skyhightechnology.restaurantengine.resources.reservation_email_label
+import com.skyhightechnology.restaurantengine.resources.reservation_existing_title
+import com.skyhightechnology.restaurantengine.resources.reservation_guest_count
 import com.skyhightechnology.restaurantengine.resources.reservation_guests_or_more
 import com.skyhightechnology.restaurantengine.resources.reservation_name_label
 import com.skyhightechnology.restaurantengine.resources.reservation_no_account
 import com.skyhightechnology.restaurantengine.resources.reservation_phone_label
 import com.skyhightechnology.restaurantengine.resources.reservation_pick_date_first
 import com.skyhightechnology.restaurantengine.resources.reservation_requests_label
+import com.skyhightechnology.restaurantengine.resources.reservation_requests_title
 import com.skyhightechnology.restaurantengine.resources.reservation_section_date
 import com.skyhightechnology.restaurantengine.resources.reservation_section_details
 import com.skyhightechnology.restaurantengine.resources.reservation_section_guests
 import com.skyhightechnology.restaurantengine.resources.reservation_section_time
-import com.skyhightechnology.restaurantengine.resources.reservation_success_body
-import com.skyhightechnology.restaurantengine.resources.reservation_success_title
+import com.skyhightechnology.restaurantengine.resources.reservation_when
+import com.skyhightechnology.restaurantengine.resources.reservation_when_label
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Instant
 import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import kotlin.time.Clock
 
-/** Book a table (Figma "5 · Book a table"): date, guests, time and contact details, confirmed from a pinned bottom bar. */
+/**
+ * Book a table (Figma "5 · Book a table"): date, guests, time and contact details, confirmed from a pinned bottom bar.
+ * If the guest already has an upcoming booking at the branch, that booking is shown instead.
+ */
 @Composable
 fun ReservationScreen(branchId: String, viewModel: ReservationViewModel = koinViewModel()) {
+    LaunchedEffect(branchId) { viewModel.onAction(ReservationAction.SelectBranch(branchId)) }
     val state by viewModel.state.collectAsStateWithLifecycle()
     val timeZone = remember { TimeZone.currentSystemDefault() }
     val now = remember { Clock.System.now().toLocalDateTime(timeZone) }
@@ -91,8 +105,12 @@ internal fun ReservationContent(
     timeZone: TimeZone,
     onAction: (ReservationAction) -> Unit,
 ) {
-    if (state.isSuccess) {
-        BookingConfirmed(onBookAnother = { onAction(ReservationAction.Reset) })
+    if (state.isLoading) {
+        LoadingView()
+        return
+    }
+    state.reservation?.let { reservation ->
+        BookingDetails(reservation, timeZone, onBookAnother = { onAction(ReservationAction.Reset) })
         return
     }
 
@@ -298,18 +316,58 @@ private fun BottomBar(
     }
 }
 
+/** The guest's booking, with the status the branch has set. */
 @Composable
-private fun BookingConfirmed(onBookAnother: () -> Unit) {
+private fun BookingDetails(reservation: Reservation, timeZone: TimeZone, onBookAnother: () -> Unit) {
+    val time = Instant.parse(reservation.reservationTime).toLocalDateTime(timeZone)
     Column(
-        modifier = Modifier.fillMaxSize().padding(32.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
-        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text(stringResource(Res.string.reservation_success_title), style = MaterialTheme.typography.headlineSmall)
+        Text(stringResource(Res.string.reservation_existing_title), style = MaterialTheme.typography.headlineSmall)
         Text(
-            stringResource(Res.string.reservation_success_body),
+            stringResource(reservation.statusRes),
             style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Button(onClick = onBookAnother) { Text(stringResource(Res.string.reservation_book_another)) }
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+        ) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                DetailRow(
+                    Res.string.reservation_when_label,
+                    stringResource(Res.string.reservation_when, stringResource(time.dayOfWeek.shortLabelRes), time.day, time.time.toString()),
+                )
+                DetailRow(
+                    Res.string.reservation_section_guests,
+                    pluralStringResource(Res.plurals.reservation_guest_count, reservation.partySize, reservation.partySize),
+                )
+                DetailRow(Res.string.reservation_name_label, reservation.customerName)
+                DetailRow(Res.string.reservation_phone_label, reservation.customerPhone)
+                if (reservation.specialRequests.isNotBlank()) {
+                    DetailRow(Res.string.reservation_requests_title, reservation.specialRequests)
+                }
+            }
+        }
+        FilledTonalButton(
+            onClick = onBookAnother,
+            modifier = Modifier.heightIn(min = 56.dp).align(Alignment.CenterHorizontally),
+            contentPadding = PaddingValues(horizontal = 24.dp),
+        ) {
+            Text(stringResource(Res.string.reservation_book_another), style = MaterialTheme.typography.titleMedium)
+        }
+    }
+}
+
+@Composable
+private fun DetailRow(label: StringResource, value: String) {
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(stringResource(label), style = MaterialTheme.typography.labelLarge)
+        Text(value, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

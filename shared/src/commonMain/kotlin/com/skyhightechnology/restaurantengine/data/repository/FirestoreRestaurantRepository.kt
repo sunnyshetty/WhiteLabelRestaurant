@@ -2,6 +2,7 @@ package com.skyhightechnology.restaurantengine.data.repository
 
 import com.skyhightechnology.restaurantengine.data.model.BranchDto
 import com.skyhightechnology.restaurantengine.data.model.MenuItemDto
+import com.skyhightechnology.restaurantengine.data.model.ReservationDto
 import com.skyhightechnology.restaurantengine.data.model.RestaurantConfigDto
 import com.skyhightechnology.restaurantengine.data.model.toDomain
 import com.skyhightechnology.restaurantengine.data.model.toDto
@@ -41,16 +42,20 @@ class FirestoreRestaurantRepository(
             .map { query -> query.documents.map { it.data<MenuItemDto>().toDomain(it.id) } }
             .mapFirestoreErrors()
 
-    override suspend fun createReservation(restaurantId: String, reservation: Reservation) {
-        firestoreCall {
-            val reservations = branch(restaurantId, reservation.branchId).collection(RESERVATIONS)
-            if (reservation.id.isBlank()) {
-                reservations.add(reservation.toDto())
-            } else {
-                reservations.document(reservation.id).set(reservation.toDto())
-            }
+    override suspend fun createReservation(restaurantId: String, reservation: Reservation): String = firestoreCall {
+        val reservations = branch(restaurantId, reservation.branchId).collection(RESERVATIONS)
+        if (reservation.id.isBlank()) {
+            reservations.add(reservation.toDto()).id
+        } else {
+            reservations.document(reservation.id).set(reservation.toDto())
+            reservation.id
         }
     }
+
+    override fun streamReservation(restaurantId: String, branchId: String, reservationId: String): Flow<Reservation?> =
+        branch(restaurantId, branchId).collection(RESERVATIONS).document(reservationId).snapshots
+            .map { snapshot -> if (snapshot.exists) snapshot.data<ReservationDto>().toDomain(snapshot.id) else null }
+            .mapFirestoreErrors()
 
     private fun restaurant(restaurantId: String) = firestore.collection(RESTAURANTS).document(restaurantId)
 

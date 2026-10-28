@@ -21,6 +21,12 @@ class FakeRestaurantRepository : RestaurantRepository {
     var createError: Exception? = null
     val createdReservations = mutableListOf<Pair<String, Reservation>>()
 
+    /** Live reservations by id; `null` means the document doesn't exist. */
+    private val reservations = mutableMapOf<String, MutableStateFlow<Reservation?>>()
+
+    fun reservation(reservationId: String): MutableStateFlow<Reservation?> =
+        reservations.getOrPut(reservationId) { MutableStateFlow(null) }
+
     fun menu(branchId: String): MutableStateFlow<List<MenuItem>> =
         menus.getOrPut(branchId) { MutableStateFlow(emptyList()) }
 
@@ -36,8 +42,14 @@ class FakeRestaurantRepository : RestaurantRepository {
     override fun streamBranchMenu(restaurantId: String, branchId: String): Flow<List<MenuItem>> =
         streamError?.let { error -> flow { throw error } } ?: menu(branchId)
 
-    override suspend fun createReservation(restaurantId: String, reservation: Reservation) {
+    override suspend fun createReservation(restaurantId: String, reservation: Reservation): String {
         createError?.let { throw it }
         createdReservations += restaurantId to reservation
+        val id = "created-${createdReservations.size}"
+        reservation(id).value = reservation.copy(id = id)
+        return id
     }
+
+    override fun streamReservation(restaurantId: String, branchId: String, reservationId: String): Flow<Reservation?> =
+        streamError?.let { error -> flow { throw error } } ?: reservation(reservationId)
 }

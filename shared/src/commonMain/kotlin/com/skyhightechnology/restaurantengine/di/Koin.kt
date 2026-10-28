@@ -1,6 +1,9 @@
 package com.skyhightechnology.restaurantengine.di
 
+import com.russhwolf.settings.Settings
 import com.skyhightechnology.restaurantengine.data.repository.FirestoreRestaurantRepository
+import com.skyhightechnology.restaurantengine.data.repository.SettingsReservationHistory
+import com.skyhightechnology.restaurantengine.domain.repository.ReservationHistory
 import com.skyhightechnology.restaurantengine.domain.repository.RestaurantRepository
 import com.skyhightechnology.restaurantengine.getApplicationId
 import com.skyhightechnology.restaurantengine.presentation.menu.MenuViewModel
@@ -25,13 +28,14 @@ val engineModule = module {
     // Resolved lazily: Firebase must be initialized (per-brand config files) before first use.
     single<FirebaseFirestore> { Firebase.firestore }
     single<RestaurantRepository> { FirestoreRestaurantRepository(get()) }
+    single<ReservationHistory> { SettingsReservationHistory(Settings()) }
 
     // ViewModels take the repository directly. The tenant ID is the restaurantId: each brand's data lives at restaurants/{applicationId}.
     viewModel { GlobalConfigViewModel(get(TenantId), get()) }
     viewModel { OnboardingViewModel(get(TenantId), get()) }
     viewModel { RestaurantViewModel(get(TenantId), get()) }
     viewModel { MenuViewModel(get(TenantId), get()) }
-    viewModel { ReservationViewModel(get(TenantId), get()) }
+    viewModel { ReservationViewModel(get(TenantId), get(), get()) }
 }
 
 /** Starts Koin with the engine's modules. Each platform entry point calls this once at startup. */
