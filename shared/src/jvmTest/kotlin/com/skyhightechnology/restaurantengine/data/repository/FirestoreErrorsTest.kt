@@ -7,6 +7,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertSame
 
+/** JVM only: building GitLive Firestore exceptions needs the real Firebase SDK on Android and iOS. */
 class FirestoreErrorsTest {
 
     @Test

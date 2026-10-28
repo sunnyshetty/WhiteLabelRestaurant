@@ -21,9 +21,9 @@ WhiteLabelRestaurant is a white-label Kotlin Multiplatform restaurant engine (An
 ## Commands
 
 - Android: `./gradlew :androidApp:assembleBurgerjointDebug`
-- Desktop: `./gradlew :desktopApp:run` — choose a tenant with `-Dtenant.applicationId=com.burgerjoint.app` (JVM arg)
+- Desktop: `./gradlew :desktopApp:run`. The app reads its tenant from the `tenant.applicationId` system property, but the Gradle `run` task doesn't forward `-D` flags, so from Gradle it always uses the default ID
 - iOS: open `iosApp/` in Xcode and pick the `Cafelocal` scheme (configurations `Debug-Cafelocal` / `Release-Cafelocal`, from `iosApp/Configuration/Cafelocal.xcconfig`, which sets `PRODUCT_BUNDLE_IDENTIFIER` and `BRAND`). A new iOS brand = new `<Brand>.xcconfig` + configurations + scheme. The plain Debug/Release configurations have no brand and skip Firebase. The build phase runs `./gradlew :shared:embedAndSignAppleFrameworkForXcode`. Linking requires the Xcode license to be accepted (`sudo xcodebuild -license`) and, once Firebase is used, the Firebase iOS SDK added via SPM.
-- Tests: `./gradlew :shared:jvmTest` (fastest), `:shared:testAndroidHostTest`, `:shared:iosSimulatorArm64Test`. Single class: append `--tests "com.skyhightechnology.restaurantengine.SomeTest"`.
+- Tests: `./gradlew :shared:jvmTest` (everything, including UI tests), `:shared:testAndroidHostTest` (commonTest on Android). `:shared:iosSimulatorArm64Test` compiles but doesn't link: the Firebase iOS framework is only provided to the app by Xcode's SPM. Single class: append `--tests "com.skyhightechnology.restaurantengine.SomeTest"`.
 
 ## Architecture
 
@@ -52,7 +52,7 @@ Modules (`settings.gradle.kts`): `shared` (all engine code + UI, built as static
 
 ### Testing
 
-Tests go in `shared/src/commonTest` mirroring the production package, using `kotlin.test` + `runTest` + Turbine, with hand-written fakes (no mocking libraries — they don't run on Kotlin/Native). Details: `.skills/unit-test-generator.md`.
+Tests go in `shared/src/commonTest` mirroring the production package, using `kotlin.test` + `runTest` + Turbine, with hand-written fakes (no mocking libraries — they don't run on Kotlin/Native). Details: `.skills/unit-test-generator.md`. Tests that read string resources (`getString`) or construct GitLive Firebase types go in `shared/src/jvmTest` instead: on the Android host-test target they need Android's real resources or Firebase SDK. Test names must not contain commas or other characters Kotlin/Native rejects (`.`, `:`, `/`, `<`, `>`, `[`).
 
 UI tests are the exception: they live in `shared/src/jvmTest` as `<Feature>ContentTest`, because `runComposeUiTest` renders off-screen on the JVM (no emulator). They drive the stateless `<Feature>Content` with `PreviewTheme` and `PreviewData`, find nodes by the app's own strings via `text(Res.string…)` (`presentation/UiTestStrings.kt`), and assert on the callbacks or actions it sends. Details: `.skills/compose-ui-test-generator.md`.
 

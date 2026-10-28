@@ -101,7 +101,7 @@ class ReservationViewModelTest {
     }
 
     @Test
-    fun `shows the form for a past, deleted or unreadable booking`() = runTest {
+    fun `shows the form for a past deleted or unreadable booking`() = runTest {
         val cases = listOf(
             earlierBooking.copy(reservationTime = "2026-10-28T11:30:00Z"),
             earlierBooking.copy(reservationTime = "not a time"),

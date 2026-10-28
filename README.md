@@ -53,17 +53,16 @@ xcodebuild -runFirstLaunch        # install/update the simulator components
 **Desktop:**
 
 ```sh
-./gradlew :desktopApp:run -Dtenant.applicationId=com.burgerjoint.app
+./gradlew :desktopApp:run
 ```
 
-The desktop target compiles, but Firebase isn't initialised there yet, so it can't load brand data.
+The desktop app compiles, but Firebase isn't initialised there yet, so it can't load brand data.
 
 **Tests:**
 
 ```sh
-./gradlew :shared:jvmTest                # fastest
-./gradlew :shared:testAndroidHostTest
-./gradlew :shared:iosSimulatorArm64Test
+./gradlew :shared:jvmTest                # all tests, including the UI tests
+./gradlew :shared:testAndroidHostTest    # the shared unit tests, compiled for Android
 ```
 
 ## Architecture
@@ -80,8 +79,8 @@ Inside `shared/src/commonMain/kotlin/com/skyhightechnology/restaurantengine/`:
 
 | Layer | Contents | Rules |
 |---|---|---|
-| `domain/` | models and the `RestaurantRepository` interface | pure Kotlin: no Compose, Firebase, serialization or Koin |
-| `data/` | `@Serializable` Firestore DTOs and `FirestoreRestaurantRepository` (GitLive Firebase SDK) | the only place Firebase is used |
+| `domain/` | models and the `RestaurantRepository` and `ReservationHistory` interfaces | pure Kotlin: no Compose, Firebase, serialization or Koin |
+| `data/` | `@Serializable` Firestore DTOs, `FirestoreRestaurantRepository` (GitLive Firebase SDK) and `SettingsReservationHistory` (on-device storage with multiplatform-settings) | the only place Firebase is used |
 | `presentation/` | Compose screens and ViewModels, each exposing a `StateFlow` of UI state | never imports `data` |
 | `di/` | Koin modules | the only place implementations are bound to interfaces |
 
@@ -118,7 +117,7 @@ No shared code changes are needed.
 
 ## Testing
 
-Unit tests live in `shared/src/commonTest` and run on JVM, Android and iOS. They use `kotlin.test`, `runTest` and [Turbine](https://github.com/cashapp/turbine) for flows, with a hand-written `FakeRestaurantRepository` instead of a mocking library (mocking libraries don't run on Kotlin/Native). They cover the ViewModels, booking slots and validation, the Firestore DTO mapping and error mapping, the theme colours and the Koin graph.
+Unit tests live in `shared/src/commonTest` and run on the JVM and as Android host tests. They use `kotlin.test`, `runTest` and [Turbine](https://github.com/cashapp/turbine) for flows, with hand-written fakes (`FakeRestaurantRepository`, `FakeReservationHistory`) instead of a mocking library (mocking libraries don't run on Kotlin/Native). Tests that read string resources or build Firebase exceptions are in `shared/src/jvmTest`, because those need Android's real resources or the real Firebase SDK on other targets. The iOS test binary doesn't link yet: Gradle has no copy of the Firebase iOS framework, which the iOS app gets from Xcode's Swift Package Manager. They cover the ViewModels, booking slots and validation, the Firestore DTO mapping and error mapping, the theme colours and the Koin graph.
 
 UI tests in `shared/src/jvmTest` (`*ContentTest`) render each screen off-screen on the JVM with Compose's `runComposeUiTest`, so they need no emulator. They tap and type like a guest would and check what each screen shows and sends: picking a branch, the branch details buttons, menu tabs and sold-out dishes, the booking form (past slots, Confirm enabled only when complete, the booking sent) and the existing-reservation view. Things that need a real device, such as Firebase, the system back gesture and the keyboard, still need checking on an emulator.
 

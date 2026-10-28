@@ -7,6 +7,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
+/** JVM only: reading string resources needs Android's real resources on the Android host-test target. */
 class ReservationStringsTest {
 
     @Test
