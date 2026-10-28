@@ -52,6 +52,6 @@ Modules (`settings.gradle.kts`): `shared` (all engine code + UI, built as static
 
 Tests go in `shared/src/commonTest` mirroring the production package, using `kotlin.test` + `runTest` + Turbine, with hand-written fakes (no mocking libraries — they don't run on Kotlin/Native). Details: `.skills/unit-test-generator.md`.
 
-UI tests are the exception: they live in `shared/src/jvmTest` as `<Feature>ContentTest`, because `runComposeUiTest` renders off-screen on the JVM (no emulator). They drive the stateless `<Feature>Content` with `PreviewTheme` and `PreviewData`, find nodes by the app's own strings via `text(Res.string…)` (`presentation/UiTestStrings.kt`), and assert on the callbacks or actions it sends.
+UI tests are the exception: they live in `shared/src/jvmTest` as `<Feature>ContentTest`, because `runComposeUiTest` renders off-screen on the JVM (no emulator). They drive the stateless `<Feature>Content` with `PreviewTheme` and `PreviewData`, find nodes by the app's own strings via `text(Res.string…)` (`presentation/UiTestStrings.kt`), and assert on the callbacks or actions it sends. Details: `.skills/compose-ui-test-generator.md`.
 
-Both `.skills/` files hold the team's established rules (`architecture-linter.md` adds project-specific bans and composition-root exemptions on top).
+The `.skills/` files hold the team's established rules (`architecture-linter.md` adds project-specific bans and composition-root exemptions on top).
