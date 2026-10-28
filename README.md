@@ -16,11 +16,11 @@ Rendered from the Compose previews with sample data, in each brand's palette.
 
 **Burger Joint**
 
-![Burger Joint: choose a branch, branch details, menu, book a table](docs/screenshots/burgerjoint.png)
+![Burger Joint: choose a branch, branch details, menu, book a table, your reservation](docs/screenshots/burgerjoint.png)
 
 **Cafe Local**
 
-![Cafe Local: choose a branch, branch details, menu, book a table](docs/screenshots/cafelocal.png)
+![Cafe Local: choose a branch, branch details, menu, book a table, your reservation](docs/screenshots/cafelocal.png)
 
 ## Features
 
