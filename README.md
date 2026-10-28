@@ -120,6 +120,8 @@ No shared code changes are needed.
 
 Unit tests live in `shared/src/commonTest` and run on JVM, Android and iOS. They use `kotlin.test`, `runTest` and [Turbine](https://github.com/cashapp/turbine) for flows, with a hand-written `FakeRestaurantRepository` instead of a mocking library (mocking libraries don't run on Kotlin/Native). They cover the ViewModels, booking slots and validation, the Firestore DTO mapping and error mapping, the theme colours and the Koin graph.
 
+UI tests in `shared/src/jvmTest` (`*ContentTest`) render each screen off-screen on the JVM with Compose's `runComposeUiTest`, so they need no emulator. They tap and type like a guest would and check what each screen shows and sends: picking a branch, the branch details buttons, menu tabs and sold-out dishes, the booking form (past slots, Confirm enabled only when complete, the booking sent) and the existing-reservation view. Things that need a real device, such as Firebase, the system back gesture and the keyboard, still need checking on an emulator.
+
 ## Known limitations and next steps
 
 - **Reservations are only stored, not processed.** Confirming a booking just saves a `PENDING` document under the branch in Firestore. There is no backend behind it: nothing checks capacity or double bookings, and the guest gets no email or SMS. Staff confirm or cancel a booking by editing its `status` by hand (for example in FireCMS), and the guest sees the change in the app. Time slots are a fixed list in the app rather than coming from each branch, and "Tables today" is a flag the restaurant sets by hand.

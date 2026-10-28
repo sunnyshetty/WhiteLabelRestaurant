@@ -82,6 +82,8 @@ kotlin {
         jvmTest.dependencies {
             // Native Skiko runtime, so compose-resources tests can resolve strings on the JVM.
             implementation(compose.desktop.currentOs)
+            // Compose UI tests (runComposeUiTest): screens rendered off-screen on the JVM, no emulator.
+            implementation(libs.compose.uiTest)
         }
     }
 }
