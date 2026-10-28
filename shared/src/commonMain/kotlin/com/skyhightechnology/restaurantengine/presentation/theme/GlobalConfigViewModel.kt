@@ -30,8 +30,6 @@ class GlobalConfigViewModel(
     fun onAction(action: GlobalConfigAction) {
         when (action) {
             GlobalConfigAction.Retry -> loadConfig()
-            is GlobalConfigAction.SelectBranch -> _state.update { it.copy(selectedBranchId = action.branchId) }
-            GlobalConfigAction.ClearBranch -> _state.update { it.copy(selectedBranchId = null) }
         }
     }
 

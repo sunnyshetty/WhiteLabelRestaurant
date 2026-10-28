@@ -20,10 +20,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import androidx.navigation.toRoute
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.ui.NavDisplay
+import androidx.savedstate.serialization.SavedStateConfiguration
 import com.skyhightechnology.restaurantengine.presentation.component.AppIcons
 import com.skyhightechnology.restaurantengine.presentation.component.FullScreenError
 import com.skyhightechnology.restaurantengine.presentation.component.LoadingView
@@ -39,11 +42,13 @@ import com.skyhightechnology.restaurantengine.resources.action_back
 import com.skyhightechnology.restaurantengine.resources.nav_menu
 import com.skyhightechnology.restaurantengine.resources.restaurant_book_table
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.polymorphic
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
-/** Root composable: brand theme, then onboarding until a branch is chosen, then the branch flow. */
+/** Root composable: brand theme, then the navigation back stack once the brand config has loaded. */
 @Composable
 fun App() {
     val globalViewModel = koinViewModel<GlobalConfigViewModel>()
@@ -52,68 +57,89 @@ fun App() {
     RestaurantEngineTheme(state.brandConfig) {
         Surface(modifier = Modifier.fillMaxSize()) {
             val config = state.brandConfig
-            val branchId = state.selectedBranchId
             when {
                 config == null && state.isLoading -> LoadingView()
                 config == null -> FullScreenError(
                     message = stringResource((state.error ?: LoadError.Unknown).messageRes),
                     onRetry = { globalViewModel.onAction(GlobalConfigAction.Retry) },
                 )
-                branchId == null -> OnboardingScreen(
-                    brandName = config.name,
-                    onBranchSelected = { globalViewModel.onAction(GlobalConfigAction.SelectBranch(it)) },
-                )
-                else -> BranchFlow(
-                    brandName = config.name,
-                    branchId = branchId,
-                    onChangeBranch = { globalViewModel.onAction(GlobalConfigAction.ClearBranch) },
-                )
+                else -> AppNavigation(brandName = config.name)
             }
         }
     }
 }
 
 @Serializable
-private data object RestaurantRoute
+private data object BranchesRoute : NavKey
+
+@Serializable
+private data class RestaurantRoute(val branchId: String) : NavKey
 
 /** [branchName] is the app bar subtitle; the Restaurant screen already has it loaded. */
 @Serializable
-private data class MenuRoute(val branchName: String)
+private data class MenuRoute(val branchId: String, val branchName: String) : NavKey
 
 /** [branchName] is the app bar subtitle, as for [MenuRoute]. */
 @Serializable
-private data class ReservationRoute(val branchName: String)
+private data class ReservationRoute(val branchId: String, val branchName: String) : NavKey
 
-/** Restaurant home, with Menu and Book a table pushed on top; leaving the home returns to the location list. */
-@Composable
-private fun BranchFlow(brandName: String, branchId: String, onChangeBranch: () -> Unit) {
-    val navController = rememberNavController()
-
-    NavHost(navController, startDestination = RestaurantRoute) {
-        composable<RestaurantRoute> {
-            RestaurantScreen(
-                brandName = brandName,
-                branchId = branchId,
-                onBack = onChangeBranch,
-                onBookTable = { branchName -> navController.navigate(ReservationRoute(branchName)) },
-                onViewMenu = { branchName -> navController.navigate(MenuRoute(branchName)) },
-            )
-        }
-        composable<MenuRoute> { entry ->
-            BackScaffold(
-                title = Res.string.nav_menu,
-                subtitle = entry.toRoute<MenuRoute>().branchName,
-                onBack = { navController.navigateUp() },
-            ) { MenuScreen(branchId = branchId) }
-        }
-        composable<ReservationRoute> { entry ->
-            BackScaffold(
-                title = Res.string.restaurant_book_table,
-                subtitle = entry.toRoute<ReservationRoute>().branchName,
-                onBack = { navController.navigateUp() },
-            ) { ReservationScreen(branchId = branchId) }
+/** Every route, so the back stack can be saved and restored on all platforms (no reflection on iOS). */
+private val navConfiguration = SavedStateConfiguration {
+    serializersModule = SerializersModule {
+        polymorphic(NavKey::class) {
+            subclass(BranchesRoute::class, BranchesRoute.serializer())
+            subclass(RestaurantRoute::class, RestaurantRoute.serializer())
+            subclass(MenuRoute::class, MenuRoute.serializer())
+            subclass(ReservationRoute::class, ReservationRoute.serializer())
         }
     }
+}
+
+/**
+ * Branch list → restaurant → menu or book a table. The back stack is a plain list: opening a screen adds
+ * its route, and back (app bar arrow or system back) removes the last one. Back on the branch list leaves the app.
+ */
+@Composable
+private fun AppNavigation(brandName: String) {
+    val backStack = rememberNavBackStack(navConfiguration, BranchesRoute)
+    val goBack: () -> Unit = { backStack.removeLastOrNull() }
+
+    NavDisplay(
+        backStack = backStack,
+        onBack = goBack,
+        // Each entry keeps its own saved UI state and ViewModels, cleared when it leaves the back stack.
+        entryDecorators = listOf(
+            rememberSaveableStateHolderNavEntryDecorator(),
+            rememberViewModelStoreNavEntryDecorator(),
+        ),
+        entryProvider = entryProvider {
+            entry<BranchesRoute> {
+                OnboardingScreen(
+                    brandName = brandName,
+                    onBranchSelected = { branchId -> backStack.add(RestaurantRoute(branchId)) },
+                )
+            }
+            entry<RestaurantRoute> { route ->
+                RestaurantScreen(
+                    brandName = brandName,
+                    branchId = route.branchId,
+                    onBack = goBack,
+                    onBookTable = { branchName -> backStack.add(ReservationRoute(route.branchId, branchName)) },
+                    onViewMenu = { branchName -> backStack.add(MenuRoute(route.branchId, branchName)) },
+                )
+            }
+            entry<MenuRoute> { route ->
+                BackScaffold(title = Res.string.nav_menu, subtitle = route.branchName, onBack = goBack) {
+                    MenuScreen(branchId = route.branchId)
+                }
+            }
+            entry<ReservationRoute> { route ->
+                BackScaffold(title = Res.string.restaurant_book_table, subtitle = route.branchName, onBack = goBack) {
+                    ReservationScreen(branchId = route.branchId)
+                }
+            }
+        },
+    )
 }
 
 /** Small app bar with back arrow. Content draws behind the navigation bar and pads for it itself. */

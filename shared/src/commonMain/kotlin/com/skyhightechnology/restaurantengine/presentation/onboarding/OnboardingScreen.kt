@@ -47,7 +47,7 @@ import org.koin.compose.viewmodel.koinViewModel
 
 /**
  * Branch picker (Figma "2 · Home – Choose location"): brand-coloured header with a rounded
- * surface sheet listing the branches. [onBranchSelected] should dispatch `GlobalConfigAction.SelectBranch`.
+ * surface sheet listing the branches. [onBranchSelected] opens the branch.
  */
 @Composable
 fun OnboardingScreen(

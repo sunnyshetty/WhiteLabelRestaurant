@@ -46,6 +46,8 @@ Modules (`settings.gradle.kts`): `shared` (all engine code + UI, built as static
 
 **Screens and previews:** each `<Feature>Screen` only obtains its ViewModel (`koinViewModel()`) and passes state and callbacks to a stateless `internal <Feature>Content`. `@Preview`s call the `Content` composable from `<Feature>Previews.kt` beside the screen, using `@ScreenPreview`, `PreviewTheme`, `BrandPreviewProvider` (once per brand) and sample data from `presentation/preview/PreviewData.kt`. New screens follow the same split.
 
+**Navigation:** Navigation 3 in `presentation/App.kt`. Routes are `@Serializable` `NavKey`s holding what the screen needs (e.g. `branchId`); each new route must also be registered in `navConfiguration`'s polymorphic module, or saving the back stack fails at runtime. `rememberViewModelStoreNavEntryDecorator()` scopes each `koinViewModel()` to its entry. Navigation 3 is pinned at 1.1.2: 1.2.x needs compileSdk 37 and AGP 9.1.
+
 `koin-core` is an `api` dependency of `shared` because `initKoin()` is called from each platform entry point (Android `WhiteLabelApplication`, desktop `main()`, iOS `MainViewController` configure block).
 
 ### Testing

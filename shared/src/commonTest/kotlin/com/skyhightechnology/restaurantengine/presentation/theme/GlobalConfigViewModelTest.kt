@@ -68,19 +68,4 @@ class GlobalConfigViewModelTest {
             assertEquals(GlobalThemeState(error = LoadError.Unknown), awaitItem())
         }
     }
-
-    @Test
-    fun `selecting and clearing a branch keeps the loaded config`() = runTest {
-        repository.config = config
-        val viewModel = viewModel()
-
-        viewModel.state.test {
-            skipItems(2)
-            viewModel.onAction(GlobalConfigAction.SelectBranch("downtown"))
-            assertEquals(GlobalThemeState(brandConfig = config, selectedBranchId = "downtown"), awaitItem())
-
-            viewModel.onAction(GlobalConfigAction.ClearBranch)
-            assertEquals(GlobalThemeState(brandConfig = config), awaitItem())
-        }
-    }
 }

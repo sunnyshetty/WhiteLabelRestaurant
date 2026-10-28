@@ -89,7 +89,7 @@ Inside `shared/src/commonMain/kotlin/com/skyhightechnology/restaurantengine/`:
 
 **Errors and text.** Repositories throw only `DataException(DataError)`. ViewModels turn that into a sealed `LoadError` / `ReservationError` in their state, and composables map each case to a string resource. All user-facing text lives in `composeResources/values/strings.xml`.
 
-**Navigation.** Choosing a branch opens the branch details screen, which leads to the Menu and Book-a-table screens (type-safe navigation-compose routes). Back from the branch details, with the app bar arrow or the system back gesture, returns to the branch list.
+**Navigation.** [Navigation 3](https://developer.android.com/guide/navigation/navigation-3) (`NavDisplay`, in `presentation/App.kt`). The back stack is a plain list of `@Serializable` routes, starting with the branch list: choosing a branch adds its details screen, which leads to the Menu and Book-a-table screens. Back, with the app bar arrow or the system back gesture, removes the last screen, and back on the branch list leaves the app. Each screen's ViewModel belongs to its back stack entry, so it is cleared when the screen is closed.
 
 **Previews.** Each screen is split into a ViewModel wrapper and a stateless `…Content` composable. The `*Previews.kt` files next to each screen render the content for both brands and for loading, empty and error states, using sample data from `presentation/preview/PreviewData.kt`.
 
